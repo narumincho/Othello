@@ -8,11 +8,11 @@ import java.awt.event.*;
 //public class MyClient extends JFrame implements MouseListener,MouseMotionListener {
 class Actor {
     public static int hp;
-    public static int Maxhp;
+    public static int maxHp;
 
     void status(int hp, int maxhp) {
         this.hp = hp;
-        this.Maxhp = maxhp;
+        this.maxHp = maxhp;
     }
 }
 
@@ -22,11 +22,10 @@ public class Client extends JFrame implements MouseListener {
 
     private JLayeredPane player_Panel;
     private JLabel player_HPGAUGE;
-    private String player_hp;
-    private String player_maxhp;
-    private JLabel player_MAXHP;
-    private JLabel player_NAME;
-    private JLabel player_HP;
+    private String playerHpString;
+    private String playerMaxHpString;
+    private JLabel playerMaxHpLabel;
+    private JLabel playerHpLabel;
 
     private JButton othello_piece_A;
     private JButton othello_piece_B;
@@ -44,18 +43,9 @@ public class Client extends JFrame implements MouseListener {
     private JLabel skillDamegeLabel;
     private JLabel attackSumLabel;
 
-    private JLabel enemyBackground;
-    private JLabel playerBackground;
+    private JButton[][] buttonArray;//ボタン用の配列
 
-    private JButton buttonArray[][];//ボタン用の配列
-
-    private JLayeredPane enemy_Panel;
     private JLabel enemy_HPGAUGE;
-    private float hpWidth = 375;
-    private String enemy_hp;
-    private String enemy_maxhp;
-    private JLabel enemy_MAXHP;
-    private JLabel enemy_NAME;
     private JLabel enemy_HP;
     private double maxHpGaugeWidth;
 
@@ -69,7 +59,6 @@ public class Client extends JFrame implements MouseListener {
     private ImageIcon horse_black_noSelectedIcon, horse_black_selectedIcon, horse_white_noSelectedIcon, horse_white_selectedIcon;
     private ImageIcon bird_black_noSelectedIcon, bird_black_selectedIcon, bird_white_noSelectedIcon, bird_white_selectedIcon;
     private ImageIcon cat_white_putIcon, boar_white_putIcon, horse_white_putIcon, bird_white_putIcon, cat_black_putIcon, boar_black_putIcon, horse_black_putIcon, bird_black_putIcon;
-    private ImageIcon enemyBackgroundIcon, playerBackgroundIcon;
 
     private final ImageIcon[] reverseIcon = new ImageIcon[24];
     private final ImageIcon[] yourturnIcon = new ImageIcon[34];
@@ -78,13 +67,12 @@ public class Client extends JFrame implements MouseListener {
     private final ImageIcon[] passIcon = new ImageIcon[35];
 
     private ImageIcon myIcon, yourIcon;
-    private ImageIcon mySelectedIcon, yourSelectedIcon, myNoSelectedIcon, yourNoSelectedIcon;
-    private ImageIcon myNoSelectdCatIcon, mySelectedCatIcon, yourNoSelectedCatIcon, yourSelectedCatIcon;
-    private ImageIcon myNoSelectedBoarIcon, mySelectedBoarIcon, yourNoSelectedBoarIcon, yourSelectedBoarIcon;
-    private ImageIcon myNoSelectedHorseIcon, mySelectedHorseIcon, yourHorseIcon, yourSelectedHorseIcon;
-    private ImageIcon myNoSelectedBirdIcon, mySelectedBirdIcon, yourNoSelectedBirdIcon, yourSelectedBirdIcon;
+    private ImageIcon mySelectedIcon, myNoSelectedIcon;
+    private ImageIcon myNoSelectdCatIcon, mySelectedCatIcon;
+    private ImageIcon myNoSelectedBoarIcon, mySelectedBoarIcon;
+    private ImageIcon myNoSelectedHorseIcon, mySelectedHorseIcon;
+    private ImageIcon myNoSelectedBirdIcon, mySelectedBirdIcon;
     private ImageIcon myPutCatIcon, myPutBoarIcon, myPutHorseIcon, myPutBirdIcon, yourPutCatIcon, yourPutBoarIcon, yourPutHorseIcon, yourPutBirdIcon;
-    private ImageIcon hpGauge_green, hpGauge_yellow, hpGauge_red;
 
     private final ImageIcon[] catDoorIcon = new ImageIcon[37];
     private final ImageIcon[] boarDoorIcon = new ImageIcon[37];
@@ -122,12 +110,7 @@ public class Client extends JFrame implements MouseListener {
     }
 
     public Client() {
-        //名前の入力ダイアログを開く
-        String myName = JOptionPane.showInputDialog(null, "名前を入力してください", "名前の入力", JOptionPane.QUESTION_MESSAGE);
-        if (myName.equals("")) {
-            myName = "No name";//名前がないときは，"No name"とする
-        }
-
+        String myName = "name";
 
         //ウィンドウを作成する
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);//ウィンドウを閉じるときに，正しく閉じるように設定する
@@ -138,7 +121,7 @@ public class Client extends JFrame implements MouseListener {
         //アイコンの設定
         whiteIcon = new ImageIcon("../assets/white.jpg");
         blackIcon = new ImageIcon("../assets/black.jpg");
-        boardIcon = new ImageIcon("../assets/frame.jpg");
+        boardIcon = new ImageIcon("../assets/board.jpg");
         white_selectedIcon = new ImageIcon("../assets/animals/white_selected.jpg");
         black_selectedIcon = new ImageIcon("../assets/animals/black_selected.jpg");
         white_noSelectedIcon = new ImageIcon("../assets/animals/white_no_selected.jpg");
@@ -186,14 +169,13 @@ public class Client extends JFrame implements MouseListener {
             birdDoorIcon[i] = new ImageIcon(String.format("../assets/bird_door/%02d.png", i));
         }
 
-
-        hpGauge_green = new ImageIcon("../assets/hpguage/hp_green.jpg");
-        hpGauge_yellow = new ImageIcon("../assets/hpguage/hp_yellow.jpg");
-        hpGauge_red = new ImageIcon("../assets/hpguage/hp_red.jpg");
+        final ImageIcon hpGauge_green = new ImageIcon("../assets/hpguage/hp_green.jpg");
+        final ImageIcon hpGauge_yellow = new ImageIcon("../assets/hpguage/hp_yellow.jpg");
+        final ImageIcon hpGauge_red = new ImageIcon("../assets/hpguage/hp_red.jpg");
         canPutIcon = new ImageIcon("../assets/can-put-down.jpg");
 
-        enemyBackgroundIcon = new ImageIcon("../assets/background/enemy.jpg");
-        playerBackgroundIcon = new ImageIcon("../assets/background/player.jpg");
+        ImageIcon enemyBackgroundIcon = new ImageIcon("../assets/background/enemy.jpg");
+        ImageIcon playerBackgroundIcon = new ImageIcon("../assets/background/player.jpg");
 
         for (int i = 0; i < reverseIcon.length; i++) {
             reverseIcon[i] = new ImageIcon(String.format("../assets/reverse/%02d.jpg", i));
@@ -220,6 +202,7 @@ public class Client extends JFrame implements MouseListener {
         player.status(10000, 10000);
         enemy.status(10000, 10000);
 
+        float hpWidth = 375;
         maxHpGaugeWidth = hpWidth / player.hp;
 
         player0_hp = player.hp;
@@ -229,10 +212,10 @@ public class Client extends JFrame implements MouseListener {
         maxHP = enemy1_hp;
 
         //敵
-        enemy_Panel = new JLayeredPane();
+        JLayeredPane enemy_Panel = new JLayeredPane();
         enemy_Panel.setLayout(null);
 
-        enemy_NAME = new JLabel("enemy");
+        JLabel enemy_NAME = new JLabel("enemy");
         enemy_NAME.setPreferredSize(new Dimension(130, 80));
         enemy_NAME.setBounds(10, 5, 80, 20);
 
@@ -241,11 +224,11 @@ public class Client extends JFrame implements MouseListener {
 //        enemy_Icon = new JLabel(enemyIcon);
 //        enemy_Icon.setBounds(0, 40, 100, 100);
 
-        enemy_maxhp = Integer.toString(enemy.Maxhp);
-        enemy_MAXHP = new JLabel("/" + (enemy_maxhp));
+        String enemy_maxhp = Integer.toString(enemy.maxHp);
+        JLabel enemy_MAXHP = new JLabel("/" + (enemy_maxhp));
         enemy_MAXHP.setBounds(320, 55, 100, 10);
 
-        enemy_hp = String.valueOf(enemy.hp);
+        String enemy_hp = String.valueOf(enemy.hp);
         enemy_HP = new JLabel(enemy_hp);
         enemy_HP.setBounds(285, 55, 100, 10);
 
@@ -273,7 +256,7 @@ public class Client extends JFrame implements MouseListener {
         attackSumLabel.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 11));
         attackSumLabel.setForeground(new Color(0, 0, 255));
 
-        enemyBackground = new JLabel();
+        JLabel enemyBackground = new JLabel();
         enemyBackground.setBounds(0, 0, 375, 70);
         enemyBackground.setIcon(enemyBackgroundIcon);
         enemy_Panel.setLayer(enemyBackground, 0);
@@ -352,13 +335,13 @@ public class Client extends JFrame implements MouseListener {
 //        player_NAME.setPreferredSize(new Dimension(130,80));
 //        player_NAME.setBounds(5,10,80,20);
 
-        player_maxhp = Integer.toString(player.Maxhp);
-        player_MAXHP = new JLabel("/" + (player_maxhp));
-        player_MAXHP.setBounds(320, 5, 100, 10);
+        playerMaxHpString = Integer.toString(player.maxHp);
+        playerMaxHpLabel = new JLabel("/" + (playerMaxHpString));
+        playerMaxHpLabel.setBounds(320, 5, 100, 10);
 
-        player_hp = String.valueOf(player.hp);
-        player_HP = new JLabel(player_hp);
-        player_HP.setBounds(285, 5, 100, 10);
+        playerHpString = String.valueOf(player.hp);
+        playerHpLabel = new JLabel(playerHpString);
+        playerHpLabel.setBounds(285, 5, 100, 10);
 
         player_HPGAUGE = new JLabel(hpGauge_green);
         int IntPlayer_hpWidth = IntEnemy_hpWidth;
@@ -389,13 +372,13 @@ public class Client extends JFrame implements MouseListener {
         othello_piece_D.addMouseListener(this);
         othello_piece_D.setActionCommand(Integer.toString(74));
 
-        playerBackground = new JLabel();
+        JLabel playerBackground = new JLabel();
         playerBackground.setBounds(0, 0, 375, 90);
         playerBackground.setIcon(playerBackgroundIcon);
         player_Panel.setLayer(playerBackground, 0);
 
-        player_Panel.add(player_HP);
-        player_Panel.add(player_MAXHP);
+        player_Panel.add(playerHpLabel);
+        player_Panel.add(playerMaxHpLabel);
 //        player_Panel.add(player_NAME);
         player_Panel.add(player_HPGAUGE);
 
@@ -464,8 +447,9 @@ public class Client extends JFrame implements MouseListener {
         //通信状況を監視し，受信データによって動作する
         public void run() {
             try {
-                InputStreamReader sisr = new InputStreamReader(socket.getInputStream());
-                BufferedReader br = new BufferedReader(sisr);
+                InputStreamReader inputStreamReader = new InputStreamReader(socket.getInputStream());
+
+                BufferedReader br = new BufferedReader(inputStreamReader);
                 out = new PrintWriter(socket.getOutputStream(), true);
                 String myNumber = br.readLine();
                 int myNumberInt = Integer.parseInt(myNumber);
@@ -792,13 +776,13 @@ public class Client extends JFrame implements MouseListener {
                                 if (myColor == 0) {
                                     player1_hp -= damege;
                                     String strPlayer1_hp = String.valueOf(player1_hp);
-                                    player_HP.setText(strPlayer1_hp);
+                                    playerHpLabel.setText(strPlayer1_hp);
 
                                     player_HPGAUGE.setBounds(0, 5, (int) (maxHpGaugeWidth * player1_hp), 10);
                                 } else {
                                     player0_hp -= damege;
                                     String strPlayer0_hp = String.valueOf(player0_hp);
-                                    player_HP.setText(strPlayer0_hp);
+                                    playerHpLabel.setText(strPlayer0_hp);
                                     player_HPGAUGE.setBounds(0, 5, (int) (maxHpGaugeWidth * player0_hp), 10);
                                 }
 
@@ -902,16 +886,6 @@ public class Client extends JFrame implements MouseListener {
             myPutBirdIcon = bird_black_putIcon;
 
             yourIcon = whiteIcon;
-            yourNoSelectedIcon = white_noSelectedIcon;
-            yourSelectedIcon = white_selectedIcon;
-            yourNoSelectedCatIcon = cat_white_noSelectedIcon;
-            yourSelectedCatIcon = cat_white_selectedIcon;
-            yourNoSelectedBoarIcon = boar_white_noSelectedIcon;
-            yourSelectedBoarIcon = boar_white_selectedIcon;
-            yourHorseIcon = horse_white_noSelectedIcon;
-            yourSelectedHorseIcon = horse_white_selectedIcon;
-            yourNoSelectedBirdIcon = bird_white_noSelectedIcon;
-            yourSelectedBirdIcon = bird_white_selectedIcon;
             yourPutCatIcon = cat_white_putIcon;
             yourPutBoarIcon = boar_white_putIcon;
             yourPutHorseIcon = horse_white_putIcon;
@@ -942,16 +916,6 @@ public class Client extends JFrame implements MouseListener {
             myPutBirdIcon = bird_white_putIcon;
 
             yourIcon = blackIcon;
-            yourNoSelectedIcon = black_noSelectedIcon;
-            yourSelectedIcon = black_selectedIcon;
-            yourNoSelectedCatIcon = cat_black_noSelectedIcon;
-            yourSelectedCatIcon = cat_black_selectedIcon;
-            yourNoSelectedBoarIcon = boar_black_noSelectedIcon;
-            yourSelectedBoarIcon = boar_black_selectedIcon;
-            yourHorseIcon = horse_black_noSelectedIcon;
-            yourSelectedHorseIcon = horse_black_selectedIcon;
-            yourNoSelectedBirdIcon = bird_black_noSelectedIcon;
-            yourSelectedBirdIcon = bird_black_selectedIcon;
             yourPutCatIcon = cat_black_putIcon;
             yourPutBoarIcon = boar_black_putIcon;
             yourPutHorseIcon = horse_black_putIcon;
@@ -1290,12 +1254,5 @@ public class Client extends JFrame implements MouseListener {
 
     public void mouseReleased(MouseEvent e) {
     }
-
-//    public void mouseDragged(MouseEvent e) {//マウスでオブジェクトとをドラッグしているときの処理
-//    }
-
-//    public void mouseMoved(MouseEvent e) {//マウスがオブジェクト上で移動したときの処理
-//    }
-
 
 }
