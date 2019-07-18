@@ -14,12 +14,7 @@ import java.awt.event.*;
 
 public class Client extends JFrame implements MouseListener {
 
-  private Container contentPane;
-
   private JLabel player_HPGAUGE;
-  private String playerHpString;
-  private String playerMaxHpString;
-  private JLabel playerMaxHpLabel;
   private JLabel playerHpLabel;
 
   private JButton othello_piece_A;
@@ -28,7 +23,6 @@ public class Client extends JFrame implements MouseListener {
   private JButton othello_piece_D;
   private JButton othello_piece_Normal;
 
-  private JLayeredPane mainPane;
   private JLabel strMain;
   private JLabel strMain2;
   private JLabel pieceDescription;
@@ -38,7 +32,7 @@ public class Client extends JFrame implements MouseListener {
   private JLabel skillDamageLabel;
   private JLabel attackSumLabel;
 
-  private JButton[][] buttonArray; // ボタン用の配列
+  private JButton[][] buttonArray;
 
   private JLabel enemy_HPGAUGE;
   private JLabel enemy_HP;
@@ -104,10 +98,7 @@ public class Client extends JFrame implements MouseListener {
   private boolean myTurn;
   private final int MASU = 8;
   private int reversedSum;
-  private String msg;
   private boolean endGame = false;
-  private Player player = new Data.Player();
-  private Player enemy = new Data.Player();
 
   private int player0_hp;
   private int player1_hp;
@@ -120,7 +111,6 @@ public class Client extends JFrame implements MouseListener {
   private int whiteChange = yourSelected;
 
   private int selected;
-  private int maxHP;
 
   private Socket socket;
   private ObjectOutputStream objectOutputStream;
@@ -145,12 +135,12 @@ public class Client extends JFrame implements MouseListener {
     }
   }
 
-  public Client() {
+  private Client() {
     // ウィンドウを作成する
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // ウィンドウを閉じるときに，正しく閉じるように設定する
     setTitle("Client"); // ウィンドウのタイトルを設定する
     setSize(375, 550); // ウィンドウのサイズを設定する
-    this.contentPane = getContentPane(); // フレームのペインを取得する
+    Container contentPane = getContentPane(); // フレームのペインを取得する
 
     // アイコンの設定
     whiteIcon = new ImageIcon("../assets/white.jpg");
@@ -232,13 +222,14 @@ public class Client extends JFrame implements MouseListener {
     contentPane.setLayout(null); // 自動レイアウトの設定を行わない
 
     float hpWidth = 375;
+    Player player = new Player();
     maxHpGaugeWidth = hpWidth / player.getHp();
 
     player0_hp = player.getHp();
     player1_hp = player.getHp();
+    Player enemy = new Player();
     enemy0_hp = enemy.getHp();
     enemy1_hp = enemy.getHp();
-    maxHP = enemy1_hp;
 
     // 敵
     JLayeredPane enemy_Panel = new JLayeredPane();
@@ -306,7 +297,7 @@ public class Client extends JFrame implements MouseListener {
     enemy_Panel.setBounds(0, 0, IntEnemy_hpWidth, 70);
     contentPane.add(enemy_Panel);
 
-    mainPane = new JLayeredPane();
+    JLayeredPane mainPane = new JLayeredPane();
 
     // ボタンの生成
     buttonArray = new JButton[MASU][MASU];
@@ -364,17 +355,16 @@ public class Client extends JFrame implements MouseListener {
     //        player_NAME.setPreferredSize(new Dimension(130,80));
     //        player_NAME.setBounds(5,10,80,20);
 
-    playerMaxHpString = Integer.toString(player.getMaxHp());
-    playerMaxHpLabel = new JLabel("/" + (playerMaxHpString));
+    String playerMaxHpString = Integer.toString(player.getMaxHp());
+    JLabel playerMaxHpLabel = new JLabel("/" + (playerMaxHpString));
     playerMaxHpLabel.setBounds(320, 5, 100, 10);
 
-    playerHpString = String.valueOf(player.getHp());
+    String playerHpString = String.valueOf(player.getHp());
     playerHpLabel = new JLabel(playerHpString);
     playerHpLabel.setBounds(285, 5, 100, 10);
 
     player_HPGAUGE = new JLabel(hpGauge);
-    int IntPlayer_hpWidth = IntEnemy_hpWidth;
-    player_HPGAUGE.setBounds(0, 5, IntPlayer_hpWidth, 10);
+    player_HPGAUGE.setBounds(0, 5, IntEnemy_hpWidth, 10);
 
     othello_piece_Normal = new JButton(boardIcon);
     othello_piece_Normal.setBounds(15, 20, 50, 50);
@@ -702,15 +692,15 @@ public class Client extends JFrame implements MouseListener {
             if (selected == 73) {
               if (myTurn) {
                 if (myColor == BlackOrWhite.Black) {
-                  lifeBurst = (maxHP - player1_hp) / 100;
+                  lifeBurst = (Player.maxHp - player1_hp) / 100;
                 } else {
-                  lifeBurst = (maxHP - player0_hp) / 100;
+                  lifeBurst = (Player.maxHp - player0_hp) / 100;
                 }
               } else {
                 if (myColor == BlackOrWhite.Black) {
-                  lifeBurst = (maxHP - enemy1_hp) / 100;
+                  lifeBurst = (Player.maxHp - enemy1_hp) / 100;
                 } else {
-                  lifeBurst = (maxHP - enemy0_hp) / 100;
+                  lifeBurst = (Player.maxHp - enemy0_hp) / 100;
                 }
               }
               itDamege = lifeBurst * 60;
@@ -804,7 +794,7 @@ public class Client extends JFrame implements MouseListener {
                 player_HPGAUGE.setBounds(0, 5, (int) (maxHpGaugeWidth * player0_hp), 10);
               }
 
-              if (hpChecker()) {
+              if (hpCheckerLessThanZero()) {
                 String msg = "RESULT";
                 endGame = true;
                 sendDataToServer(msg);
@@ -907,7 +897,6 @@ public class Client extends JFrame implements MouseListener {
 
       strMain.setIcon(null);
 
-      return;
     } else {
       myIcon = whiteIcon;
       myNoSelectedIcon = white_noSelectedIcon;
@@ -1050,7 +1039,7 @@ public class Client extends JFrame implements MouseListener {
     }
   }
 
-  private void reverse(int x, int y, int vecX, int vecY) {
+  private void reverse(int x, int y, final int vecX, final int vecY) {
     // 相手の石がある間ひっくり返し続ける
     // (x,y)に打てるのは確認済みなので相手の石は必ず
     x += vecX;
@@ -1061,42 +1050,41 @@ public class Client extends JFrame implements MouseListener {
         && buttonArray[y][x].getIcon() != myPutCatIcon
         && buttonArray[y][x].getIcon() != myPutBoarIcon) {
       // ひっくり返す
-      msg = "REVERSE" + " " + myColor + " " + x + " " + y;
-      sendDataToServer(msg);
+      sendDataToServer("REVERSE" + " " + myColor + " " + x + " " + y);
       x += vecX;
       y += vecY;
     }
   }
 
-  private boolean canPutDown(int x, int y) {
-    // (x,y)にすでに石が打たれてたら打てない
-    if (buttonArray[y][x].getIcon() == myIcon
-        || buttonArray[y][x].getIcon() == myPutHorseIcon
-        || buttonArray[y][x].getIcon() == myPutBirdIcon
-        || buttonArray[y][x].getIcon() == myPutCatIcon
-        || buttonArray[y][x].getIcon() == myPutBoarIcon
-        || buttonArray[y][x].getIcon() == yourIcon
-        || buttonArray[y][x].getIcon() == yourPutHorseIcon
-        || buttonArray[y][x].getIcon() == yourPutBirdIcon
-        || buttonArray[y][x].getIcon() == yourPutCatIcon
-        || buttonArray[y][x].getIcon() == yourPutBoarIcon) return false;
+  private boolean canPutDown(final int x, final int y) {
+    // すでに石が打たれてたら打てない
+    Icon icon = buttonArray[y][x].getIcon();
+    if (icon == myIcon
+        || icon == myPutHorseIcon
+        || icon == myPutBirdIcon
+        || icon == myPutCatIcon
+        || icon == myPutBoarIcon
+        || icon == yourIcon
+        || icon == yourPutHorseIcon
+        || icon == yourPutBirdIcon
+        || icon == yourPutCatIcon
+        || icon == yourPutBoarIcon) {
+      return false;
+    }
+
     // 8方向のうち一箇所でもひっくり返せればこの場所に打てる
     // ひっくり返せるかどうかはもう1つのcanPutDownで調べる
-
-    if (canPutDown(x, y, 1, -1)) return true; // 右上
-    if (canPutDown(x, y, 1, 0)) return true; // 右
-    if (canPutDown(x, y, 1, 1)) return true; // 右下
-    if (canPutDown(x, y, 0, 1)) return true; // 下
-    if (canPutDown(x, y, -1, 1)) return true; // 左下
-    if (canPutDown(x, y, -1, 0)) return true; // 左
-    if (canPutDown(x, y, -1, -1)) return true; // 左上
-    if (canPutDown(x, y, 0, -1)) return true; // 上
-
-    // どの方向もだめな場合はここには打てない
-    return false;
+    return canPutDown(x, y, 1, -1) // 右上
+        || canPutDown(x, y, 1, 0) // 右
+        || canPutDown(x, y, 1, 1) // 右下
+        || canPutDown(x, y, 0, 1) // 下
+        || canPutDown(x, y, -1, 1) // 左下
+        || canPutDown(x, y, -1, 0) // 左
+        || canPutDown(x, y, -1, -1) // 左上
+        || canPutDown(x, y, 0, -1); // 上
   }
 
-  private boolean canPutDown(int x, int y, int vecX, int vecY) {
+  private boolean canPutDown(int x, int y, final int vecX, final int vecY) {
 
     // 隣の場所へ。どの隣かは(vecX, vecY)が決める。
     x += vecX;
@@ -1145,7 +1133,7 @@ public class Client extends JFrame implements MouseListener {
     return false;
   }
 
-  public boolean countPutDownStone() {
+  private boolean countPutDownStone() {
     int count = 0;
 
     for (int y = 0; y < MASU; y++) {
@@ -1156,14 +1144,14 @@ public class Client extends JFrame implements MouseListener {
       }
     }
     if (count == 0) {
-      msg = "PASS";
-      sendDataToServer(msg); // 送信データをバッファに書き出す
+      sendDataToServer("PASS"); // 送信データをバッファに書き出す
       return true;
     }
     return false;
   }
 
-  public boolean hpChecker() {
+  @Contract(pure = true)
+  private boolean hpCheckerLessThanZero() {
     return player0_hp < 0 || player1_hp < 0;
   }
 
@@ -1261,7 +1249,6 @@ public class Client extends JFrame implements MouseListener {
 
   @Override
   public void mouseExited(MouseEvent e) {
-
     pieceDescription.setText(null);
     pieceDescription.setOpaque(false);
   }

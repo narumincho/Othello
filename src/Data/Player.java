@@ -4,6 +4,7 @@ import org.jetbrains.annotations.Contract;
 
 public class Player {
   private int hp;
+  public static final int maxHp = 10000;
 
   @Contract(pure = true)
   public Player() {
