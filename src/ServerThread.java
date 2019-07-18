@@ -1,47 +1,43 @@
-import java.net.Socket;
-import java.io.InputStreamReader;
-import java.io.BufferedReader;
+import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 
-//スレッド部（各クライアントに応じて）
+/** 各クライアントからリクエストを受け取るスレッド */
 class ServerThread extends Thread {
-    private int number;//自分の番号
-    private Socket incoming;
-    private InputStreamReader myIsr;
-    private BufferedReader myIn;
-    private PrintWriter myOut;
-    private String myName;//接続者の名前
+  /** 管理する接続番号 */
+  private ObjectInputStream objectInputStream;
 
-    public ServerThread(int n, Socket i, InputStreamReader isr, BufferedReader in, PrintWriter out) {
-        number = n;
-        incoming = i;
-        myIsr = isr;
-        myIn = in;
-        myOut = out;
-    }
+  private PrintWriter printWriter;
+  /** 接続者の名前 */
+  private String name;
 
-    public void run() {
-        try {
-            myOut.println(number);//初回だけ呼ばれる
+  ServerThread(final ObjectInputStream objectInputStream, final PrintWriter printWriter) {
+    this.objectInputStream = objectInputStream;
+    this.printWriter = printWriter;
+  }
 
+  @Override
+  public void run() {
+    try {
+      printWriter.println(this.getId()); // 初回だけ呼ばれる
 
-            myName = myIn.readLine();//初めて接続したときの一行目は名前
+      this.name = objectInputStream.readUTF();
 
-            while (true) {//無限ループで，ソケットへの入力を監視する
-                String str = myIn.readLine();
- //               System.out.println("Received from client No."+number+"("+myName+"), Messages: "+str);
-                if (str != null) {//このソケット（バッファ）に入力があるかをチェック
-                    if (str.toUpperCase().equals("BYE")) {
-                        myOut.println("Good bye!");
-                        break;
-                    }
-                    Server.SendAll(str, myName);//サーバに来たメッセージは接続しているクライアント全員に配る
-                }
-            }
-        } catch (Exception e) {
-            //ここにプログラムが到達するときは，接続が切れたとき
-            System.out.println("Disconnect from client No."+number+"("+myName+")");
-            Server.SetFlag(number, false);//接続が切れたのでフラグを下げる
+      while (true) { // 無限ループで，ソケットへの入力を監視する
+        final String messageFromClient = objectInputStream.readUTF();
+        if (messageFromClient.toUpperCase().equals("BYE")) {
+          printWriter.println("Good bye!");
+          return;
         }
+        Server.SendAll(messageFromClient, this.getId()); // サーバに来たメッセージは接続しているクライアント全員に配る
+      }
+    } catch (Exception e) {
+      // ここにプログラムが到達するときは，接続が切れたとき
+      System.out.println("Disconnect from client No." + this.getId() + "(" + this.name + ")");
+      Server.disconnected(this.getId()); // 接続が切れたのでフラグを下げる
     }
+  }
+
+  public void sendMessage(final String message) {
+    printWriter.println(message);
+  }
 }
