@@ -1,6 +1,7 @@
 import Data.FirstResponseFull;
 import Data.FirstResponseOk;
 import Data.BlackOrWhite;
+import Data.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -10,16 +11,6 @@ import javax.swing.*;
 import java.lang.*;
 import java.awt.*;
 import java.awt.event.*;
-
-class Actor {
-  public static int hp;
-  public static int maxHp;
-
-  void status(int hp, int maxHp) {
-    Actor.hp = hp;
-    Actor.maxHp = maxHp;
-  }
-}
 
 public class Client extends JFrame implements MouseListener {
 
@@ -115,8 +106,8 @@ public class Client extends JFrame implements MouseListener {
   private int reversedSum;
   private String msg;
   private boolean endGame = false;
-  private Actor player = new Actor();
-  private Actor enemy = new Actor();
+  private Player player = new Data.Player();
+  private Player enemy = new Data.Player();
 
   private int player0_hp;
   private int player1_hp;
@@ -240,16 +231,13 @@ public class Client extends JFrame implements MouseListener {
 
     contentPane.setLayout(null); // 自動レイアウトの設定を行わない
 
-    player.status(10000, 10000);
-    enemy.status(10000, 10000);
-
     float hpWidth = 375;
-    maxHpGaugeWidth = hpWidth / player.hp;
+    maxHpGaugeWidth = hpWidth / player.getHp();
 
-    player0_hp = player.hp;
-    player1_hp = player.hp;
-    enemy0_hp = enemy.hp;
-    enemy1_hp = enemy.hp;
+    player0_hp = player.getHp();
+    player1_hp = player.getHp();
+    enemy0_hp = enemy.getHp();
+    enemy1_hp = enemy.getHp();
     maxHP = enemy1_hp;
 
     // 敵
@@ -265,11 +253,11 @@ public class Client extends JFrame implements MouseListener {
     //        enemy_Icon = new JLabel(enemyIcon);
     //        enemy_Icon.setBounds(0, 40, 100, 100);
 
-    String enemy_maxhp = Integer.toString(enemy.maxHp);
+    String enemy_maxhp = Integer.toString(enemy.getMaxHp());
     JLabel enemy_MAXHP = new JLabel("/" + (enemy_maxhp));
     enemy_MAXHP.setBounds(320, 55, 100, 10);
 
-    String enemy_hp = String.valueOf(enemy.hp);
+    String enemy_hp = String.valueOf(enemy.getHp());
     enemy_HP = new JLabel(enemy_hp);
     enemy_HP.setBounds(285, 55, 100, 10);
 
@@ -376,11 +364,11 @@ public class Client extends JFrame implements MouseListener {
     //        player_NAME.setPreferredSize(new Dimension(130,80));
     //        player_NAME.setBounds(5,10,80,20);
 
-    playerMaxHpString = Integer.toString(player.maxHp);
+    playerMaxHpString = Integer.toString(player.getMaxHp());
     playerMaxHpLabel = new JLabel("/" + (playerMaxHpString));
     playerMaxHpLabel.setBounds(320, 5, 100, 10);
 
-    playerHpString = String.valueOf(player.hp);
+    playerHpString = String.valueOf(player.getHp());
     playerHpLabel = new JLabel(playerHpString);
     playerHpLabel.setBounds(285, 5, 100, 10);
 
