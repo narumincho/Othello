@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.PrintWriter;
 
 //スレッド部（各クライアントに応じて）
-class ClientProcThread extends Thread {
+class ServerThread extends Thread {
     private int number;//自分の番号
     private Socket incoming;
     private InputStreamReader myIsr;
@@ -12,7 +12,7 @@ class ClientProcThread extends Thread {
     private PrintWriter myOut;
     private String myName;//接続者の名前
 
-    public ClientProcThread(int n, Socket i, InputStreamReader isr, BufferedReader in, PrintWriter out) {
+    public ServerThread(int n, Socket i, InputStreamReader isr, BufferedReader in, PrintWriter out) {
         number = n;
         incoming = i;
         myIsr = isr;
@@ -35,13 +35,13 @@ class ClientProcThread extends Thread {
                         myOut.println("Good bye!");
                         break;
                     }
-                    MyServer.SendAll(str, myName);//サーバに来たメッセージは接続しているクライアント全員に配る
+                    Server.SendAll(str, myName);//サーバに来たメッセージは接続しているクライアント全員に配る
                 }
             }
         } catch (Exception e) {
             //ここにプログラムが到達するときは，接続が切れたとき
             System.out.println("Disconnect from client No."+number+"("+myName+")");
-            MyServer.SetFlag(number, false);//接続が切れたのでフラグを下げる
+            Server.SetFlag(number, false);//接続が切れたのでフラグを下げる
         }
     }
 }

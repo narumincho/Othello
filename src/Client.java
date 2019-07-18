@@ -16,7 +16,7 @@ class Actor {
     }
 }
 
-public class MyClient extends JFrame implements MouseListener {
+public class Client extends JFrame implements MouseListener {
 
     private Container c;
 
@@ -69,7 +69,7 @@ public class MyClient extends JFrame implements MouseListener {
     private ImageIcon horse_black_noSelectedIcon, horse_black_selectedIcon, horse_white_noSelectedIcon, horse_white_selectedIcon;
     private ImageIcon bird_black_noSelectedIcon, bird_black_selectedIcon, bird_white_noSelectedIcon, bird_white_selectedIcon;
     private ImageIcon cat_white_putIcon, boar_white_putIcon, horse_white_putIcon, bird_white_putIcon, cat_black_putIcon, boar_black_putIcon, horse_black_putIcon, bird_black_putIcon;
-    private ImageIcon enemyBackgroundIcon,playerBackgroundIcon;
+    private ImageIcon enemyBackgroundIcon, playerBackgroundIcon;
 
     private final ImageIcon[] reverseIcon = new ImageIcon[24];
     private final ImageIcon[] yourturnIcon = new ImageIcon[34];
@@ -116,7 +116,12 @@ public class MyClient extends JFrame implements MouseListener {
 
     PrintWriter out;//出力用のライター
 
-    public MyClient() {
+    public static void main(String[] args) {
+        Client client = new Client();
+        client.setVisible(true);
+    }
+
+    public Client() {
         //名前の入力ダイアログを開く
         String myName = JOptionPane.showInputDialog(null, "名前を入力してください", "名前の入力", JOptionPane.QUESTION_MESSAGE);
         if (myName.equals("")) {
@@ -182,7 +187,6 @@ public class MyClient extends JFrame implements MouseListener {
         }
 
 
-
         hpGauge_green = new ImageIcon("../assets/hpguage/hp_green.jpg");
         hpGauge_yellow = new ImageIcon("../assets/hpguage/hp_yellow.jpg");
         hpGauge_red = new ImageIcon("../assets/hpguage/hp_red.jpg");
@@ -222,7 +226,7 @@ public class MyClient extends JFrame implements MouseListener {
         player1_hp = player.hp;
         enemy0_hp = enemy.hp;
         enemy1_hp = enemy.hp;
-        maxHP=enemy1_hp;
+        maxHP = enemy1_hp;
 
         //敵
         enemy_Panel = new JLayeredPane();
@@ -252,25 +256,25 @@ public class MyClient extends JFrame implements MouseListener {
         damegeLabel = new JLabel();
         damegeLabel.setBounds(80, -40, 375, 100);
         damegeLabel.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 11));
-        damegeLabel.setForeground(new Color(0,0,255));
+        damegeLabel.setForeground(new Color(0, 0, 255));
 
         skillDamegeLabel = new JLabel();
         skillDamegeLabel.setBounds(80, -30, 375, 100);
         skillDamegeLabel.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 11));
-        skillDamegeLabel.setForeground(new Color(0,0,255));
+        skillDamegeLabel.setForeground(new Color(0, 0, 255));
 
         poisonDamegeLabel = new JLabel();
-        poisonDamegeLabel.setBounds(80,  -20, 375, 100);
+        poisonDamegeLabel.setBounds(80, -20, 375, 100);
         poisonDamegeLabel.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 11));
-        poisonDamegeLabel.setForeground(new Color(0,0,255));
+        poisonDamegeLabel.setForeground(new Color(0, 0, 255));
 
         attackSumLabel = new JLabel();
         attackSumLabel.setBounds(80, -5, 375, 100);
         attackSumLabel.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 11));
-        attackSumLabel.setForeground(new Color(0,0,255));
+        attackSumLabel.setForeground(new Color(0, 0, 255));
 
         enemyBackground = new JLabel();
-        enemyBackground.setBounds(0,0,375,70);
+        enemyBackground.setBounds(0, 0, 375, 70);
         enemyBackground.setIcon(enemyBackgroundIcon);
         enemy_Panel.setLayer(enemyBackground, 0);
 
@@ -313,19 +317,19 @@ public class MyClient extends JFrame implements MouseListener {
         str_main = new JLabel();
         str_main.setBounds(20, 20, 300, 300);
         str_main.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 20));
-        str_main.setForeground(new Color(255,0,255));
+        str_main.setForeground(new Color(255, 0, 255));
         mainPane.setLayer(str_main, 4);
 
         str_main2 = new JLabel();
         str_main2.setBounds(20, 40, 300, 300);
         str_main2.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 20));
-        str_main2.setForeground(new Color(255,0,255));
+        str_main2.setForeground(new Color(255, 0, 255));
         mainPane.setLayer(str_main2, 4);
 
         pieceDescription = new JLabel();
         pieceDescription.setBounds(0, 180, 375, 50);
-        pieceDescription.setBackground(new Color(128,128,128,128));
-        pieceDescription.setForeground(new Color(0,0,255));
+        pieceDescription.setBackground(new Color(128, 128, 128, 128));
+        pieceDescription.setForeground(new Color(0, 0, 255));
         mainPane.setLayer(pieceDescription, 2);
 
         DoorLabel = new JLabel();
@@ -386,7 +390,7 @@ public class MyClient extends JFrame implements MouseListener {
         othello_piece_D.setActionCommand(Integer.toString(74));
 
         playerBackground = new JLabel();
-        playerBackground.setBounds(0,0,375,90);
+        playerBackground.setBounds(0, 0, 375, 90);
         playerBackground.setIcon(playerBackgroundIcon);
         player_Panel.setLayer(playerBackground, 0);
 
@@ -496,7 +500,7 @@ public class MyClient extends JFrame implements MouseListener {
 
                         if (cmd.equals("PASS")) {
 
-                            if (myTurn == true) {
+                            if (myTurn) {
 
                                 for (ImageIcon i : passIcon) {
                                     str_main.setIcon(i);
@@ -552,11 +556,11 @@ public class MyClient extends JFrame implements MouseListener {
                                     buttonArray[y][x].setIcon(myIcon);
                                 } else if (mySelected == 71) {
                                     buttonArray[y][x].setIcon(myPutCatIcon);
-                                } else if(mySelected == 72){
+                                } else if (mySelected == 72) {
                                     buttonArray[y][x].setIcon(myPutBoarIcon);
-                                } else if(mySelected == 73){
+                                } else if (mySelected == 73) {
                                     buttonArray[y][x].setIcon(myPutHorseIcon);
-                                } else if(mySelected == 74){
+                                } else if (mySelected == 74) {
                                     buttonArray[y][x].setIcon(myPutBirdIcon);
                                 }
                             } else {
@@ -564,11 +568,11 @@ public class MyClient extends JFrame implements MouseListener {
                                     buttonArray[y][x].setIcon(yourIcon);
                                 } else if (yourSelected == 71) {
                                     buttonArray[y][x].setIcon(yourPutCatIcon);
-                                } else if(yourSelected == 72){
+                                } else if (yourSelected == 72) {
                                     buttonArray[y][x].setIcon(yourPutBoarIcon);
-                                } else if(yourSelected == 73){
+                                } else if (yourSelected == 73) {
                                     buttonArray[y][x].setIcon(yourPutHorseIcon);
-                                } else if(yourSelected == 74){
+                                } else if (yourSelected == 74) {
                                     buttonArray[y][x].setIcon(yourPutBirdIcon);
                                 }
                             }
@@ -580,28 +584,28 @@ public class MyClient extends JFrame implements MouseListener {
                             int buttonNum = Integer.parseInt(inputTokens[2]);
 
 
-                            if(colorNumInt==0){
+                            if (colorNumInt == 0) {
                                 blackChange = buttonNum;
-                            }else{
+                            } else {
                                 whiteChange = buttonNum;
                             }
 
-                            if(colorNumInt==0){
-                                if(myTurn){
+                            if (colorNumInt == 0) {
+                                if (myTurn) {
                                     mySelected = blackChange;
                                     yourSelected = whiteChange;
                                     selected = mySelected;
-                                } else{
+                                } else {
                                     mySelected = whiteChange;
                                     yourSelected = blackChange;
                                     selected = yourSelected;
                                 }
-                            }else{
-                                if(myTurn){
+                            } else {
+                                if (myTurn) {
                                     mySelected = whiteChange;
                                     yourSelected = blackChange;
                                     selected = mySelected;
-                                }else{
+                                } else {
                                     mySelected = blackChange;
                                     yourSelected = whiteChange;
                                     selected = yourSelected;
@@ -643,24 +647,24 @@ public class MyClient extends JFrame implements MouseListener {
                             double attackMagnification = 1.15;
                             double attack;
                             int itDamege;
-                            if(reversedSum==0){
+                            if (reversedSum == 0) {
                                 attack = attackMagnification;
-                            }else {
+                            } else {
                                 attack = Math.pow(attackMagnification, reversedSum);
                             }
-                            int damege = (int) (OffensivePower*attack);
+                            int damege = (int) (OffensivePower * attack);
 
-                            damegeLabel.setText(OffensivePower+"×"+attack+"="+damege);
+                            damegeLabel.setText(OffensivePower + "×" + attack + "=" + damege);
 
-                            if(selected==70){
+                            if (selected == 70) {
                                 skillDamegeLabel.setText("スキル未使用");
                             }
-                            if(selected==71){
+                            if (selected == 71) {
                                 for (ImageIcon i : catDoorIcon) {
                                     DoorLabel.setIcon(i);
                                     longSleep();
 
-                                    if(i== catDoorIcon[15]){
+                                    if (i == catDoorIcon[15]) {
                                         str_main.setText("ひっくり返した駒の枚数");
                                         str_main2.setText("×300のダメージを与える");
                                         longlongSleep();
@@ -668,18 +672,18 @@ public class MyClient extends JFrame implements MouseListener {
                                 }
                                 str_main2.setText(null);
                                 str_main.setText(null);
-                                itDamege=300*reversedSum;
-                                damege+=itDamege;
-                                skillDamegeLabel.setText("一度に返した枚数"+reversedSum+"×"+300+"="+itDamege);
+                                itDamege = 300 * reversedSum;
+                                damege += itDamege;
+                                skillDamegeLabel.setText("一度に返した枚数" + reversedSum + "×" + 300 + "=" + itDamege);
                             }
 
-                            if(selected==72){
+                            if (selected == 72) {
                                 skillDamegeLabel.setText("イノシシ+1");
                                 for (ImageIcon i : boarDoorIcon) {
                                     DoorLabel.setIcon(i);
                                     longSleep();
 
-                                    if(i== boarDoorIcon[15]){
+                                    if (i == boarDoorIcon[15]) {
                                         str_main.setText("盤面で表になっている間、毎");
                                         str_main2.setText("ターン300のダメージを与える");
                                         longlongSleep();
@@ -691,41 +695,41 @@ public class MyClient extends JFrame implements MouseListener {
 
                             int Poison;
                             int PoisonDamege;
-                            if(myTurn){
+                            if (myTurn) {
                                 Poison = counter.getMyBoarCount();
-                                PoisonDamege=Poison*300;
-                            }else{
+                                PoisonDamege = Poison * 300;
+                            } else {
                                 Poison = counter.getYourBoarCount();
-                                PoisonDamege=Poison*300;
+                                PoisonDamege = Poison * 300;
                             }
-                            poisonDamegeLabel.setText("イノシシの個数"+Poison+"×"+300+"="+PoisonDamege);
-                            damege+=PoisonDamege; //72 毒
+                            poisonDamegeLabel.setText("イノシシの個数" + Poison + "×" + 300 + "=" + PoisonDamege);
+                            damege += PoisonDamege; //72 毒
 
                             int lifeBurst;
 
-                            if(selected==73){
-                                if(myTurn) {
+                            if (selected == 73) {
+                                if (myTurn) {
                                     if (myColor == 1) {
                                         lifeBurst = (maxHP - player0_hp) / 100;
                                     } else {
                                         lifeBurst = (maxHP - player1_hp) / 100;
                                     }
-                                }else{
+                                } else {
                                     if (myColor == 1) {
                                         lifeBurst = (maxHP - enemy0_hp) / 100;
                                     } else {
                                         lifeBurst = (maxHP - enemy1_hp) / 100;
                                     }
                                 }
-                                itDamege=lifeBurst*60;
-                                skillDamegeLabel.setText("減少分割合　"+lifeBurst+"%×"+60+"="+itDamege);
-                                damege+=itDamege;
+                                itDamege = lifeBurst * 60;
+                                skillDamegeLabel.setText("減少分割合　" + lifeBurst + "%×" + 60 + "=" + itDamege);
+                                damege += itDamege;
 
                                 for (ImageIcon i : horseDoorIcon) {
                                     DoorLabel.setIcon(i);
                                     longSleep();
 
-                                    if(i== horseDoorIcon[15]){
+                                    if (i == horseDoorIcon[15]) {
                                         str_main.setText("自分のHPが減少する程");
                                         str_main2.setText("与えるダメージが上昇する");
                                         longlongSleep();
@@ -735,22 +739,22 @@ public class MyClient extends JFrame implements MouseListener {
                                 str_main.setText(null);
                             }
 
-                            if(selected==74){
+                            if (selected == 74) {
                                 int pieceSum;
-                                if(myTurn){
-                                    pieceSum = counter.getYourIconCount()+counter.getYourCatCount()+counter.getYourBoarCount()+counter.getYourHorseCount()+counter.getYourBirdCount();
-                                }else {
-                                    pieceSum = counter.getMyIconCount()+counter.getMyCatCount()+counter.getMyBoarCount()+counter.getMyHorseCount()+counter.getMyBirdCount();
+                                if (myTurn) {
+                                    pieceSum = counter.getYourIconCount() + counter.getYourCatCount() + counter.getYourBoarCount() + counter.getYourHorseCount() + counter.getYourBirdCount();
+                                } else {
+                                    pieceSum = counter.getMyIconCount() + counter.getMyCatCount() + counter.getMyBoarCount() + counter.getMyHorseCount() + counter.getMyBirdCount();
                                 }
                                 itDamege = pieceSum * 80;
-                                skillDamegeLabel.setText("相手の駒の総数"+pieceSum+"×"+80+"="+itDamege);
-                                damege+=itDamege;
+                                skillDamegeLabel.setText("相手の駒の総数" + pieceSum + "×" + 80 + "=" + itDamege);
+                                damege += itDamege;
 
                                 for (ImageIcon i : birdDoorIcon) {
                                     DoorLabel.setIcon(i);
                                     longSleep();
 
-                                    if(i== birdDoorIcon[15]){
+                                    if (i == birdDoorIcon[15]) {
                                         str_main.setText("ひっくり返した後の、");
                                         str_main2.setText("相手の駒数×80のダメージを与える");
                                         longlongSleep();
@@ -760,7 +764,7 @@ public class MyClient extends JFrame implements MouseListener {
                                 str_main.setText(null);
                             }
 
-                            attackSumLabel.setText("合計ダメージ＝"+damege);
+                            attackSumLabel.setText("合計ダメージ＝" + damege);
 
                             if (myTurn) {
                                 if (myColor == 0) {
@@ -805,7 +809,7 @@ public class MyClient extends JFrame implements MouseListener {
                                     out.flush();
                                 }
 
-                                if (endGame == false) {
+                                if (!endGame) {
                                     myTurn = true;
                                     countPutDownStone();
 
@@ -859,20 +863,13 @@ public class MyClient extends JFrame implements MouseListener {
         }
     }
 
-
-    public static void main(String[] args) {
-        MyClient net = new MyClient();
-        net.setVisible(true);
-    }
-
-
     //----------------------------------------------------------------------------------------------
 
     private void whichCome(int num) {
         if (num % 2 != 0) {
             myColor = 0;
             myTurn = true;
-        } else if (num % 2 == 0) {
+        } else {
             myColor = 1;
             myTurn = false;
         }
@@ -974,28 +971,28 @@ public class MyClient extends JFrame implements MouseListener {
                     counter.myIconCount++;
                 if (buttonArray[y][x].getIcon() == yourIcon)
                     counter.yourIconCount++;
-                if(buttonArray[y][x].getIcon() == myPutCatIcon){
+                if (buttonArray[y][x].getIcon() == myPutCatIcon) {
                     counter.myCatCount++;
                 }
-                if(buttonArray[y][x].getIcon() == myPutBoarIcon){
+                if (buttonArray[y][x].getIcon() == myPutBoarIcon) {
                     counter.myBoarCount++;
                 }
-                if(buttonArray[y][x].getIcon() == myPutHorseIcon){
+                if (buttonArray[y][x].getIcon() == myPutHorseIcon) {
                     counter.myHorseCount++;
                 }
-                if(buttonArray[y][x].getIcon() == myPutBirdIcon){
+                if (buttonArray[y][x].getIcon() == myPutBirdIcon) {
                     counter.myBirdCount++;
                 }
-                if(buttonArray[y][x].getIcon() == yourPutCatIcon){
+                if (buttonArray[y][x].getIcon() == yourPutCatIcon) {
                     counter.yourCatCount++;
                 }
-                if(buttonArray[y][x].getIcon() == yourPutBoarIcon){
+                if (buttonArray[y][x].getIcon() == yourPutBoarIcon) {
                     counter.yourBoarCount++;
                 }
-                if(buttonArray[y][x].getIcon() == yourPutHorseIcon){
+                if (buttonArray[y][x].getIcon() == yourPutHorseIcon) {
                     counter.yourHorseCount++;
                 }
-                if(buttonArray[y][x].getIcon() == yourPutBirdIcon){
+                if (buttonArray[y][x].getIcon() == yourPutBirdIcon) {
                     counter.yourBirdCount++;
                 }
             }
@@ -1015,7 +1012,10 @@ public class MyClient extends JFrame implements MouseListener {
         public int yourHorseCount;
         public int yourBirdCount;
 
-        public int getMyIconCount() { return myIconCount; }
+        public int getMyIconCount() {
+            return myIconCount;
+        }
+
         public int getYourIconCount() {
             return yourIconCount;
         }
@@ -1023,12 +1023,15 @@ public class MyClient extends JFrame implements MouseListener {
         public int getMyCatCount() {
             return myCatCount;
         }
+
         public int getMyBoarCount() {
             return myBoarCount;
         }
+
         public int getMyHorseCount() {
             return myHorseCount;
         }
+
         public int getMyBirdCount() {
             return myBirdCount;
         }
@@ -1036,12 +1039,15 @@ public class MyClient extends JFrame implements MouseListener {
         public int getYourCatCount() {
             return yourCatCount;
         }
+
         public int getYourBoarCount() {
             return yourBoarCount;
         }
+
         public int getYourHorseCount() {
             return yourHorseCount;
         }
+
         public int getYourBirdCount() {
             return yourBirdCount;
         }
@@ -1078,7 +1084,7 @@ public class MyClient extends JFrame implements MouseListener {
 
     private boolean canPutDown(int x, int y) {
         // (x,y)にすでに石が打たれてたら打てない
-        if (buttonArray[y][x].getIcon() == myIcon ||buttonArray[y][x].getIcon() == myPutHorseIcon || buttonArray[y][x].getIcon() == myPutBirdIcon || buttonArray[y][x].getIcon() == myPutCatIcon || buttonArray[y][x].getIcon() == myPutBoarIcon || buttonArray[y][x].getIcon() == yourIcon ||buttonArray[y][x].getIcon() == yourPutHorseIcon || buttonArray[y][x].getIcon() == yourPutBirdIcon || buttonArray[y][x].getIcon() == yourPutCatIcon || buttonArray[y][x].getIcon() == yourPutBoarIcon)
+        if (buttonArray[y][x].getIcon() == myIcon || buttonArray[y][x].getIcon() == myPutHorseIcon || buttonArray[y][x].getIcon() == myPutBirdIcon || buttonArray[y][x].getIcon() == myPutCatIcon || buttonArray[y][x].getIcon() == myPutBoarIcon || buttonArray[y][x].getIcon() == yourIcon || buttonArray[y][x].getIcon() == yourPutHorseIcon || buttonArray[y][x].getIcon() == yourPutBirdIcon || buttonArray[y][x].getIcon() == yourPutCatIcon || buttonArray[y][x].getIcon() == yourPutBoarIcon)
             return false;
         // 8方向のうち一箇所でもひっくり返せればこの場所に打てる
         // ひっくり返せるかどうかはもう1つのcanPutDownで調べる
@@ -1113,7 +1119,7 @@ public class MyClient extends JFrame implements MouseListener {
         if (x < 0 || x >= MASU || y < 0 || y >= MASU)
             return false;
         // 隣が自分の石の場合は打てない
-        if (buttonArray[y][x].getIcon() == myIcon ||buttonArray[y][x].getIcon() == myPutHorseIcon || buttonArray[y][x].getIcon() == myPutBirdIcon || buttonArray[y][x].getIcon() == myPutCatIcon || buttonArray[y][x].getIcon() == myPutBoarIcon)
+        if (buttonArray[y][x].getIcon() == myIcon || buttonArray[y][x].getIcon() == myPutHorseIcon || buttonArray[y][x].getIcon() == myPutBirdIcon || buttonArray[y][x].getIcon() == myPutCatIcon || buttonArray[y][x].getIcon() == myPutBoarIcon)
             return false;
         // 隣が空白の場合は打てない
         if (buttonArray[y][x].getIcon() == boardIcon || buttonArray[y][x].getIcon() == canPutIcon)
@@ -1133,7 +1139,7 @@ public class MyClient extends JFrame implements MouseListener {
             if (buttonArray[y][x].getIcon() == boardIcon || buttonArray[y][x].getIcon() == canPutIcon)
                 return false;
             // 自分の石があればはさめるので打てる
-            if (buttonArray[y][x].getIcon() == myIcon ||buttonArray[y][x].getIcon() == myPutHorseIcon || buttonArray[y][x].getIcon() == myPutBirdIcon || buttonArray[y][x].getIcon() == myPutCatIcon || buttonArray[y][x].getIcon() == myPutBoarIcon) {
+            if (buttonArray[y][x].getIcon() == myIcon || buttonArray[y][x].getIcon() == myPutHorseIcon || buttonArray[y][x].getIcon() == myPutBirdIcon || buttonArray[y][x].getIcon() == myPutCatIcon || buttonArray[y][x].getIcon() == myPutBoarIcon) {
                 canPutX = x - (vecX * (count + 1));
                 canPutY = y - (vecY * (count + 1));
                 String msg = "CANPUT" + " " + canPutX + " " + canPutY;
@@ -1169,11 +1175,7 @@ public class MyClient extends JFrame implements MouseListener {
     }
 
     public boolean hpCheaker() {
-
-        if (player0_hp < 0 || player1_hp < 0) {
-            return true;
-        }
-        return false;
+        return player0_hp < 0 || player1_hp < 0;
     }
 
 
@@ -1188,7 +1190,7 @@ public class MyClient extends JFrame implements MouseListener {
         Icon theIcon = theButton.getIcon();//theIconには，現在のボタンに設定されたアイコンが入る
         System.out.println(theIcon);//デバッグ（確認用）に，クリックしたアイコンの名前を出力する
 
-        if(myTurn) {
+        if (myTurn) {
             if (!endGame) {
                 if (theArrayIndexInt == 70 || theArrayIndexInt == 71 || theArrayIndexInt == 72 || theArrayIndexInt == 73 || theArrayIndexInt == 74) {
                     if (theArrayIndexInt == 70) {
