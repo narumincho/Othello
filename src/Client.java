@@ -1,3 +1,9 @@
+import Data.FirstResponseFull;
+import Data.FirstResponseOk;
+import Data.BlackOrWhite;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
 import java.net.*;
 import java.io.*;
 import javax.swing.*;
@@ -5,7 +11,6 @@ import java.lang.*;
 import java.awt.*;
 import java.awt.event.*;
 
-// public class MyClient extends JFrame implements MouseListener,MouseMotionListener {
 class Actor {
   public static int hp;
   public static int maxHp;
@@ -18,7 +23,7 @@ class Actor {
 
 public class Client extends JFrame implements MouseListener {
 
-  private Container c;
+  private Container contentPane;
 
   private JLabel player_HPGAUGE;
   private String playerHpString;
@@ -33,13 +38,13 @@ public class Client extends JFrame implements MouseListener {
   private JButton othello_piece_Normal;
 
   private JLayeredPane mainPane;
-  private JLabel str_main;
-  private JLabel str_main2;
+  private JLabel strMain;
+  private JLabel strMain2;
   private JLabel pieceDescription;
   private JLabel DoorLabel;
-  private JLabel damegeLabel;
-  private JLabel poisonDamegeLabel;
-  private JLabel skillDamegeLabel;
+  private JLabel damageLabel;
+  private JLabel poisonDamageLabel;
+  private JLabel skillDamageLabel;
   private JLabel attackSumLabel;
 
   private JButton[][] buttonArray; // ボタン用の配列
@@ -104,7 +109,7 @@ public class Client extends JFrame implements MouseListener {
   private final ImageIcon[] horseDoorIcon = new ImageIcon[37];
   private final ImageIcon[] birdDoorIcon = new ImageIcon[37];
 
-  private int myColor;
+  private BlackOrWhite myColor;
   private boolean myTurn;
   private final int MASU = 8;
   private int reversedSum;
@@ -126,21 +131,35 @@ public class Client extends JFrame implements MouseListener {
   private int selected;
   private int maxHP;
 
-  ObjectOutputStream out; // 出力用のライター
+  private Socket socket;
+  private ObjectOutputStream objectOutputStream;
 
   public static void main(String[] args) {
     Client client = new Client();
     client.setVisible(true);
   }
 
-  public Client() {
-    String myName = "name";
+  private void sendDataToServer(@NotNull final String message) {
+    try {
+      System.out.println(message + "をサーバーに送ろうとしている");
+      if (objectOutputStream == null) {
+        objectOutputStream = new ObjectOutputStream(this.socket.getOutputStream());
+      }
+      objectOutputStream.writeUTF(message);
+      objectOutputStream.flush();
 
+      System.out.println(message + "をサーバーに送った");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public Client() {
     // ウィンドウを作成する
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // ウィンドウを閉じるときに，正しく閉じるように設定する
-    setTitle("MyClient"); // ウィンドウのタイトルを設定する
+    setTitle("Client"); // ウィンドウのタイトルを設定する
     setSize(375, 550); // ウィンドウのサイズを設定する
-    c = getContentPane(); // フレームのペインを取得する
+    this.contentPane = getContentPane(); // フレームのペインを取得する
 
     // アイコンの設定
     whiteIcon = new ImageIcon("../assets/white.jpg");
@@ -193,9 +212,7 @@ public class Client extends JFrame implements MouseListener {
       birdDoorIcon[i] = new ImageIcon(String.format("../assets/bird_door/%02d.png", i));
     }
 
-    final ImageIcon hpGauge_green = new ImageIcon("../assets/hpguage/hp_green.jpg");
-    final ImageIcon hpGauge_yellow = new ImageIcon("../assets/hpguage/hp_yellow.jpg");
-    final ImageIcon hpGauge_red = new ImageIcon("../assets/hpguage/hp_red.jpg");
+    final ImageIcon hpGauge = new ImageIcon("../assets/hpguage/hp_green.jpg");
     canPutIcon = new ImageIcon("../assets/can-put-down.jpg");
 
     ImageIcon enemyBackgroundIcon = new ImageIcon("../assets/background/enemy.jpg");
@@ -221,7 +238,7 @@ public class Client extends JFrame implements MouseListener {
       passIcon[i] = new ImageIcon(String.format("../assets/pass/%02d.png", i));
     }
 
-    c.setLayout(null); // 自動レイアウトの設定を行わない
+    contentPane.setLayout(null); // 自動レイアウトの設定を行わない
 
     player.status(10000, 10000);
     enemy.status(10000, 10000);
@@ -256,24 +273,24 @@ public class Client extends JFrame implements MouseListener {
     enemy_HP = new JLabel(enemy_hp);
     enemy_HP.setBounds(285, 55, 100, 10);
 
-    enemy_HPGAUGE = new JLabel(hpGauge_green);
+    enemy_HPGAUGE = new JLabel(hpGauge);
     int IntEnemy_hpWidth = (int) hpWidth;
     enemy_HPGAUGE.setBounds(0, 55, IntEnemy_hpWidth, 10);
 
-    damegeLabel = new JLabel();
-    damegeLabel.setBounds(80, -40, 375, 100);
-    damegeLabel.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 11));
-    damegeLabel.setForeground(new Color(0, 0, 255));
+    damageLabel = new JLabel();
+    damageLabel.setBounds(80, -40, 375, 100);
+    damageLabel.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 11));
+    damageLabel.setForeground(new Color(0, 0, 255));
 
-    skillDamegeLabel = new JLabel();
-    skillDamegeLabel.setBounds(80, -30, 375, 100);
-    skillDamegeLabel.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 11));
-    skillDamegeLabel.setForeground(new Color(0, 0, 255));
+    skillDamageLabel = new JLabel();
+    skillDamageLabel.setBounds(80, -30, 375, 100);
+    skillDamageLabel.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 11));
+    skillDamageLabel.setForeground(new Color(0, 0, 255));
 
-    poisonDamegeLabel = new JLabel();
-    poisonDamegeLabel.setBounds(80, -20, 375, 100);
-    poisonDamegeLabel.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 11));
-    poisonDamegeLabel.setForeground(new Color(0, 0, 255));
+    poisonDamageLabel = new JLabel();
+    poisonDamageLabel.setBounds(80, -20, 375, 100);
+    poisonDamageLabel.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 11));
+    poisonDamageLabel.setForeground(new Color(0, 0, 255));
 
     attackSumLabel = new JLabel();
     attackSumLabel.setBounds(80, -5, 375, 100);
@@ -290,16 +307,16 @@ public class Client extends JFrame implements MouseListener {
     enemy_Panel.add(enemy_NAME);
     enemy_Panel.add(enemy_HPGAUGE);
 
-    enemy_Panel.add(damegeLabel);
-    enemy_Panel.add(poisonDamegeLabel);
-    enemy_Panel.add(skillDamegeLabel);
+    enemy_Panel.add(damageLabel);
+    enemy_Panel.add(poisonDamageLabel);
+    enemy_Panel.add(skillDamageLabel);
     enemy_Panel.add(attackSumLabel);
 
     enemy_Panel.add(enemyBackground);
 
     //  enemy_Panel.add(enemy_Icon);
     enemy_Panel.setBounds(0, 0, IntEnemy_hpWidth, 70);
-    c.add(enemy_Panel);
+    contentPane.add(enemy_Panel);
 
     mainPane = new JLayeredPane();
 
@@ -321,17 +338,17 @@ public class Client extends JFrame implements MouseListener {
 
     // 文字表示
 
-    str_main = new JLabel();
-    str_main.setBounds(20, 20, 300, 300);
-    str_main.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 20));
-    str_main.setForeground(new Color(255, 0, 255));
-    mainPane.setLayer(str_main, 4);
+    strMain = new JLabel();
+    strMain.setBounds(20, 20, 300, 300);
+    strMain.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 20));
+    strMain.setForeground(new Color(255, 0, 255));
+    mainPane.setLayer(strMain, 4);
 
-    str_main2 = new JLabel();
-    str_main2.setBounds(20, 40, 300, 300);
-    str_main2.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 20));
-    str_main2.setForeground(new Color(255, 0, 255));
-    mainPane.setLayer(str_main2, 4);
+    strMain2 = new JLabel();
+    strMain2.setBounds(20, 40, 300, 300);
+    strMain2.setFont(new Font("ＭＳ ゴシック", Font.BOLD, 20));
+    strMain2.setForeground(new Color(255, 0, 255));
+    mainPane.setLayer(strMain2, 4);
 
     pieceDescription = new JLabel();
     pieceDescription.setBounds(0, 180, 375, 50);
@@ -344,18 +361,18 @@ public class Client extends JFrame implements MouseListener {
     mainPane.setLayer(DoorLabel, 3);
 
     mainPane.add(DoorLabel);
-    mainPane.add(str_main);
-    mainPane.add(str_main2);
+    mainPane.add(strMain);
+    mainPane.add(strMain2);
     mainPane.add(pieceDescription);
 
     mainPane.setBounds(0, 70, 375, 360);
-    c.add(mainPane);
+    contentPane.add(mainPane);
 
     // player
     JLayeredPane player_Panel = new JLayeredPane();
     player_Panel.setLayout(null);
 
-    //        player_NAME = new JLabel(myName);
+    //        player_NAME = new JLabel(name);
     //        player_NAME.setPreferredSize(new Dimension(130,80));
     //        player_NAME.setBounds(5,10,80,20);
 
@@ -367,7 +384,7 @@ public class Client extends JFrame implements MouseListener {
     playerHpLabel = new JLabel(playerHpString);
     playerHpLabel.setBounds(285, 5, 100, 10);
 
-    player_HPGAUGE = new JLabel(hpGauge_green);
+    player_HPGAUGE = new JLabel(hpGauge);
     int IntPlayer_hpWidth = IntEnemy_hpWidth;
     player_HPGAUGE.setBounds(0, 5, IntPlayer_hpWidth, 10);
 
@@ -415,35 +432,21 @@ public class Client extends JFrame implements MouseListener {
 
     player_Panel.setBounds(0, 430, 375, 90);
 
-    c.add(player_Panel);
+    contentPane.add(player_Panel);
 
     // サーバに接続する
-    Socket socket = null;
     try {
-      // "localhost"は，自分内部への接続．localhostを接続先のIP Address（"133.42.155.201"形式）に設定すると他のPCのサーバと通信できる
-      // 10000はポート番号．IP Addressで接続するPCを決めて，ポート番号でそのPC上動作するプログラムを特定する
-      socket = new Socket("localhost", 10000);
+      this.socket = new Socket("localhost", 10000);
+      (new ClientThread()).start();
     } catch (UnknownHostException e) {
       System.err.println("ホストの IP アドレスが判定できません: " + e);
     } catch (IOException e) {
       System.err.println("エラーが発生しました: " + e);
     }
-
-    MesgRecvThread mrt = new MesgRecvThread(socket, myName); // 受信用のスレッドを作成する
-    mrt.start(); // スレッドを動かす（Runが動く）
   }
 
   // メッセージ受信のためのスレッド
-  public class MesgRecvThread extends Thread {
-
-    Socket socket;
-    String myName;
-
-    public MesgRecvThread(Socket s, String n) {
-      socket = s;
-      myName = n;
-    }
-
+  public class ClientThread extends Thread {
     private void sleep() {
       try {
         Thread.sleep(10);
@@ -469,17 +472,19 @@ public class Client extends JFrame implements MouseListener {
     }
 
     // 通信状況を監視し，受信データによって動作する
+    @Override
     public void run() {
       try {
-        InputStreamReader inputStreamReader = new InputStreamReader(socket.getInputStream());
-
-        BufferedReader br = new BufferedReader(inputStreamReader);
-        out = new ObjectOutputStream(socket.getOutputStream());
-        String myNumber = br.readLine();
-        int myNumberInt = Integer.parseInt(myNumber);
-
-        whichCome(myNumberInt);
-        whichColor(myColor);
+        ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+        Data.FirstResponse firstResponse = (Data.FirstResponse) objectInputStream.readObject();
+        if (firstResponse instanceof FirstResponseFull) {
+          System.out.println("接続が多くて閉め出された");
+          return;
+        }
+        myColor = ((FirstResponseOk) firstResponse).getBlackOrWhite();
+        myTurn = colorToFirstTurn(myColor);
+        System.out.println("自分の色=" + myColor);
+        setIconFromBlackOrWhite(myColor);
 
         othello_piece_Normal.setIcon(mySelectedIcon);
         othello_piece_A.setIcon(myNoSelectdCatIcon);
@@ -498,380 +503,371 @@ public class Client extends JFrame implements MouseListener {
           buttonArray[5][4].setIcon(canPutIcon);
           buttonArray[4][5].setIcon(canPutIcon);
         }
+        System.out.println("ループ前に到達");
 
         while (true) {
-          String inputLine = br.readLine(); // データを一行分だけ読み込んでみる
-          if (inputLine != null) { // 読み込んだときにデータが読み込まれたかどうかをチェックする
-            System.out.println(inputLine); // デバッグ（動作確認用）にコンソールに出力する
-            String[] inputTokens = inputLine.split(" "); // 入力データを解析するために、スペースで切り分ける
-            String cmd = inputTokens[0]; // コマンドの取り出し．１つ目の要素を取り出す
+          final String inputLine = objectInputStream.readUTF();
+          System.out.println("サーバーから " + inputLine);
+          final String[] inputTokens = inputLine.split(" ");
+          final String command = inputTokens[0];
 
-            if (cmd.equals("PASS")) {
+          if (command.equals("PASS")) {
 
-              if (myTurn) {
+            if (myTurn) {
 
-                for (ImageIcon i : passIcon) {
-                  str_main.setIcon(i);
-                  longSleep();
+              for (ImageIcon i : passIcon) {
+                strMain.setIcon(i);
+                longSleep();
+              }
+              strMain.setIcon(null);
+
+              myTurn = false;
+            } else {
+              myTurn = true;
+              if (countPutDownStone()) {
+                String msg = "RESULT";
+                endGame = true;
+                sendDataToServer(msg);
+              }
+            }
+          }
+
+          if (command.equals("CANPUT")) {
+
+            final int x = Integer.parseInt(inputTokens[1]);
+            final int y = Integer.parseInt(inputTokens[2]);
+
+            if (myTurn) {
+              if (buttonArray[y][x].getIcon() == boardIcon) {
+                buttonArray[y][x].setIcon(canPutIcon);
+              }
+
+            } else {
+              for (int i = 0; i < MASU; i++) {
+                for (int j = 0; j < MASU; j++) {
+                  if (buttonArray[i][j].getIcon() == canPutIcon) {
+                    buttonArray[i][j].setIcon(boardIcon);
+                  }
                 }
-                str_main.setIcon(null);
+              }
+            }
+          }
 
-                myTurn = false;
+          if (command.equals("FLIP")) {
+            reversedSum = 0;
+
+            int x = Integer.parseInt(inputTokens[1]);
+            int y = Integer.parseInt(inputTokens[2]);
+
+            if (myTurn) {
+              // 送信元クライアントでの処理
+              if (mySelected == 70) {
+                buttonArray[y][x].setIcon(myIcon);
+              } else if (mySelected == 71) {
+                buttonArray[y][x].setIcon(myPutCatIcon);
+              } else if (mySelected == 72) {
+                buttonArray[y][x].setIcon(myPutBoarIcon);
+              } else if (mySelected == 73) {
+                buttonArray[y][x].setIcon(myPutHorseIcon);
+              } else if (mySelected == 74) {
+                buttonArray[y][x].setIcon(myPutBirdIcon);
+              }
+            } else {
+              if (yourSelected == 70) {
+                buttonArray[y][x].setIcon(yourIcon);
+              } else if (yourSelected == 71) {
+                buttonArray[y][x].setIcon(yourPutCatIcon);
+              } else if (yourSelected == 72) {
+                buttonArray[y][x].setIcon(yourPutBoarIcon);
+              } else if (yourSelected == 73) {
+                buttonArray[y][x].setIcon(yourPutHorseIcon);
+              } else if (yourSelected == 74) {
+                buttonArray[y][x].setIcon(yourPutBirdIcon);
+              }
+            }
+          }
+
+          if (command.equals("SELECT")) {
+            final BlackOrWhite blackOrWhite = BlackOrWhite.valueOf(inputTokens[1]);
+            int buttonNum = Integer.parseInt(inputTokens[2]);
+
+            if (blackOrWhite == BlackOrWhite.Black) {
+              blackChange = buttonNum;
+            } else {
+              whiteChange = buttonNum;
+            }
+
+            if (blackOrWhite == BlackOrWhite.Black) {
+              if (myTurn) {
+                mySelected = blackChange;
+                yourSelected = whiteChange;
+                selected = mySelected;
               } else {
+                mySelected = whiteChange;
+                yourSelected = blackChange;
+                selected = yourSelected;
+              }
+            } else {
+              if (myTurn) {
+                mySelected = whiteChange;
+                yourSelected = blackChange;
+                selected = mySelected;
+              } else {
+                mySelected = blackChange;
+                yourSelected = whiteChange;
+                selected = yourSelected;
+              }
+            }
+          }
+
+          if (command.equals("REVERSE")) {
+            final BlackOrWhite blackOrWhite = BlackOrWhite.valueOf(inputTokens[1]);
+            int x = Integer.parseInt(inputTokens[2]);
+            int y = Integer.parseInt(inputTokens[3]);
+            if (blackOrWhite == BlackOrWhite.Black) {
+
+              for (int i = reverseIcon.length - 1; i >= 0; i--) {
+                buttonArray[y][x].setIcon(reverseIcon[i]);
+                sleep();
+              }
+
+              buttonArray[y][x].setIcon(blackIcon);
+
+            } else {
+              for (ImageIcon i : reverseIcon) {
+                buttonArray[y][x].setIcon(i);
+                sleep();
+              }
+
+              buttonArray[y][x].setIcon(whiteIcon);
+            }
+            reversedSum++;
+          }
+
+          if (command.equals("REVERSED")) {
+            Counter counter;
+            counter = countStone();
+            double OffensivePower = 300;
+            double attackMagnification = 1.15;
+            double attack;
+            int itDamege;
+            if (reversedSum == 0) {
+              attack = attackMagnification;
+            } else {
+              attack = Math.pow(attackMagnification, reversedSum);
+            }
+            int damege = (int) (OffensivePower * attack);
+
+            damageLabel.setText(OffensivePower + "×" + attack + "=" + damege);
+
+            if (selected == 70) {
+              skillDamageLabel.setText("スキル未使用");
+            }
+            if (selected == 71) {
+              for (ImageIcon i : catDoorIcon) {
+                DoorLabel.setIcon(i);
+                longSleep();
+
+                if (i == catDoorIcon[15]) {
+                  strMain.setText("ひっくり返した駒の枚数");
+                  strMain2.setText("×300のダメージを与える");
+                  longLongSleep();
+                }
+              }
+              strMain2.setText(null);
+              strMain.setText(null);
+              itDamege = 300 * reversedSum;
+              damege += itDamege;
+              skillDamageLabel.setText("一度に返した枚数" + reversedSum + "×" + 300 + "=" + itDamege);
+            }
+
+            if (selected == 72) {
+              skillDamageLabel.setText("イノシシ+1");
+              for (ImageIcon i : boarDoorIcon) {
+                DoorLabel.setIcon(i);
+                longSleep();
+
+                if (i == boarDoorIcon[15]) {
+                  strMain.setText("盤面で表になっている間、毎");
+                  strMain2.setText("ターン300のダメージを与える");
+                  longLongSleep();
+                }
+              }
+              strMain2.setText(null);
+              strMain.setText(null);
+            }
+
+            int Poison;
+            int PoisonDamage;
+            if (myTurn) {
+              Poison = counter.getMyBoarCount();
+              PoisonDamage = Poison * 300;
+            } else {
+              Poison = counter.getYourBoarCount();
+              PoisonDamage = Poison * 300;
+            }
+            poisonDamageLabel.setText("イノシシの個数" + Poison + "×" + 300 + "=" + PoisonDamage);
+            damege += PoisonDamage; // 72 毒
+
+            int lifeBurst;
+
+            if (selected == 73) {
+              if (myTurn) {
+                if (myColor == BlackOrWhite.Black) {
+                  lifeBurst = (maxHP - player1_hp) / 100;
+                } else {
+                  lifeBurst = (maxHP - player0_hp) / 100;
+                }
+              } else {
+                if (myColor == BlackOrWhite.Black) {
+                  lifeBurst = (maxHP - enemy1_hp) / 100;
+                } else {
+                  lifeBurst = (maxHP - enemy0_hp) / 100;
+                }
+              }
+              itDamege = lifeBurst * 60;
+              skillDamageLabel.setText("減少分割合　" + lifeBurst + "%×" + 60 + "=" + itDamege);
+              damege += itDamege;
+
+              for (ImageIcon i : horseDoorIcon) {
+                DoorLabel.setIcon(i);
+                longSleep();
+
+                if (i == horseDoorIcon[15]) {
+                  strMain.setText("自分のHPが減少する程");
+                  strMain2.setText("与えるダメージが上昇する");
+                  longLongSleep();
+                }
+              }
+              strMain2.setText(null);
+              strMain.setText(null);
+            }
+
+            if (selected == 74) {
+              int pieceSum;
+              if (myTurn) {
+                pieceSum =
+                    counter.getYourIconCount()
+                        + counter.getYourCatCount()
+                        + counter.getYourBoarCount()
+                        + counter.getYourHorseCount()
+                        + counter.getYourBirdCount();
+              } else {
+                pieceSum =
+                    counter.getMyIconCount()
+                        + counter.getMyCatCount()
+                        + counter.getMyBoarCount()
+                        + counter.getMyHorseCount()
+                        + counter.getMyBirdCount();
+              }
+              itDamege = pieceSum * 80;
+              skillDamageLabel.setText("相手の駒の総数" + pieceSum + "×" + 80 + "=" + itDamege);
+              damege += itDamege;
+
+              for (ImageIcon i : birdDoorIcon) {
+                DoorLabel.setIcon(i);
+                longSleep();
+
+                if (i == birdDoorIcon[15]) {
+                  strMain.setText("ひっくり返した後の、");
+                  strMain2.setText("相手の駒数×80のダメージを与える");
+                  longLongSleep();
+                }
+              }
+              strMain2.setText(null);
+              strMain.setText(null);
+            }
+
+            attackSumLabel.setText("合計ダメージ＝" + damege);
+
+            if (myTurn) {
+              if (myColor == BlackOrWhite.Black) {
+                enemy1_hp -= damege;
+                String strEnemy1_hp = String.valueOf(enemy1_hp);
+                enemy_HP.setText(strEnemy1_hp);
+
+                enemy_HPGAUGE.setBounds(0, 55, (int) (maxHpGaugeWidth * enemy1_hp), 10);
+              } else {
+                enemy0_hp -= damege;
+                String strEnemy0_hp = String.valueOf(enemy0_hp);
+                enemy_HP.setText(strEnemy0_hp);
+
+                enemy_HPGAUGE.setBounds(0, 55, (int) (maxHpGaugeWidth * enemy0_hp), 10);
+              }
+              myTurn = false;
+              for (int i = 0; i < MASU; i++) {
+                for (int j = 0; j < MASU; j++) {
+                  if (buttonArray[i][j].getIcon() == canPutIcon) {
+                    buttonArray[i][j].setIcon(boardIcon);
+                  }
+                }
+              }
+            } else {
+              if (myColor == BlackOrWhite.Black) {
+                player1_hp -= damege;
+                String strPlayer1_hp = String.valueOf(player1_hp);
+                playerHpLabel.setText(strPlayer1_hp);
+
+                player_HPGAUGE.setBounds(0, 5, (int) (maxHpGaugeWidth * player1_hp), 10);
+              } else {
+                player0_hp -= damege;
+                String strPlayer0_hp = String.valueOf(player0_hp);
+                playerHpLabel.setText(strPlayer0_hp);
+                player_HPGAUGE.setBounds(0, 5, (int) (maxHpGaugeWidth * player0_hp), 10);
+              }
+
+              if (hpChecker()) {
+                String msg = "RESULT";
+                endGame = true;
+                sendDataToServer(msg);
+              }
+
+              if (!endGame) {
                 myTurn = true;
-                if (countPutDownStone()) {
-                  String msg = "RESULT";
-                  endGame = true;
-                  out.writeUTF(msg);
-                  out.flush();
-                  break;
-                }
-              }
-            }
+                countPutDownStone();
 
-            if (cmd.equals("CANPUT")) {
-
-              int x = Integer.parseInt(inputTokens[1]);
-              int y = Integer.parseInt(inputTokens[2]);
-
-              if (myTurn) {
-                if (buttonArray[y][x].getIcon() == boardIcon) {
-                  buttonArray[y][x].setIcon(canPutIcon);
-                }
-
-              } else {
-                for (int i = 0; i < MASU; i++) {
-                  for (int j = 0; j < MASU; j++) {
-                    if (buttonArray[i][j].getIcon() == canPutIcon) {
-                      buttonArray[i][j].setIcon(boardIcon);
-                    }
-                  }
-                }
-              }
-            }
-
-            if (cmd.equals("FLIP")) {
-              reversedSum = 0;
-
-              int x = Integer.parseInt(inputTokens[1]);
-              int y = Integer.parseInt(inputTokens[2]);
-
-              if (myTurn) {
-                // 送信元クライアントでの処理
-                if (mySelected == 70) {
-                  buttonArray[y][x].setIcon(myIcon);
-                } else if (mySelected == 71) {
-                  buttonArray[y][x].setIcon(myPutCatIcon);
-                } else if (mySelected == 72) {
-                  buttonArray[y][x].setIcon(myPutBoarIcon);
-                } else if (mySelected == 73) {
-                  buttonArray[y][x].setIcon(myPutHorseIcon);
-                } else if (mySelected == 74) {
-                  buttonArray[y][x].setIcon(myPutBirdIcon);
-                }
-              } else {
-                if (yourSelected == 70) {
-                  buttonArray[y][x].setIcon(yourIcon);
-                } else if (yourSelected == 71) {
-                  buttonArray[y][x].setIcon(yourPutCatIcon);
-                } else if (yourSelected == 72) {
-                  buttonArray[y][x].setIcon(yourPutBoarIcon);
-                } else if (yourSelected == 73) {
-                  buttonArray[y][x].setIcon(yourPutHorseIcon);
-                } else if (yourSelected == 74) {
-                  buttonArray[y][x].setIcon(yourPutBirdIcon);
-                }
-              }
-            }
-
-            if (cmd.equals("SELECT")) {
-              String colorNum = inputTokens[1]; // ボタンの名前（番号）の取得
-              int colorNumInt = Integer.parseInt(colorNum); // ボタンの名前を数値に変換する
-              int buttonNum = Integer.parseInt(inputTokens[2]);
-
-              if (colorNumInt == 0) {
-                blackChange = buttonNum;
-              } else {
-                whiteChange = buttonNum;
-              }
-
-              if (colorNumInt == 0) {
-                if (myTurn) {
-                  mySelected = blackChange;
-                  yourSelected = whiteChange;
-                  selected = mySelected;
-                } else {
-                  mySelected = whiteChange;
-                  yourSelected = blackChange;
-                  selected = yourSelected;
-                }
-              } else {
-                if (myTurn) {
-                  mySelected = whiteChange;
-                  yourSelected = blackChange;
-                  selected = mySelected;
-                } else {
-                  mySelected = blackChange;
-                  yourSelected = whiteChange;
-                  selected = yourSelected;
-                }
-              }
-            }
-
-            if (cmd.equals("REVERSE")) {
-              String colorNum = inputTokens[1]; // ボタンの名前（番号）の取得
-              int colorNumInt = Integer.parseInt(colorNum); // ボタンの名前を数値に変換する
-              int x = Integer.parseInt(inputTokens[2]);
-              int y = Integer.parseInt(inputTokens[3]);
-              if (colorNumInt == 1) {
-
-                for (ImageIcon i : reverseIcon) {
-                  buttonArray[y][x].setIcon(i);
-                  sleep();
-                }
-
-                buttonArray[y][x].setIcon(whiteIcon);
-
-              } else {
-
-                for (int i = reverseIcon.length - 1; i >= 0; i--) {
-                  buttonArray[y][x].setIcon(reverseIcon[i]);
-                  sleep();
-                }
-
-                buttonArray[y][x].setIcon(blackIcon);
-              }
-              reversedSum++;
-            }
-
-            if (cmd.equals("REVERSED")) {
-              Counter counter;
-              counter = countStone();
-              double OffensivePower = 300;
-              double attackMagnification = 1.15;
-              double attack;
-              int itDamege;
-              if (reversedSum == 0) {
-                attack = attackMagnification;
-              } else {
-                attack = Math.pow(attackMagnification, reversedSum);
-              }
-              int damege = (int) (OffensivePower * attack);
-
-              damegeLabel.setText(OffensivePower + "×" + attack + "=" + damege);
-
-              if (selected == 70) {
-                skillDamegeLabel.setText("スキル未使用");
-              }
-              if (selected == 71) {
-                for (ImageIcon i : catDoorIcon) {
-                  DoorLabel.setIcon(i);
+                for (ImageIcon i : yourturnIcon) {
+                  strMain.setIcon(i);
                   longSleep();
-
-                  if (i == catDoorIcon[15]) {
-                    str_main.setText("ひっくり返した駒の枚数");
-                    str_main2.setText("×300のダメージを与える");
-                    longLongSleep();
-                  }
                 }
-                str_main2.setText(null);
-                str_main.setText(null);
-                itDamege = 300 * reversedSum;
-                damege += itDamege;
-                skillDamegeLabel.setText("一度に返した枚数" + reversedSum + "×" + 300 + "=" + itDamege);
+
+                strMain.setIcon(null);
               }
-
-              if (selected == 72) {
-                skillDamegeLabel.setText("イノシシ+1");
-                for (ImageIcon i : boarDoorIcon) {
-                  DoorLabel.setIcon(i);
-                  longSleep();
-
-                  if (i == boarDoorIcon[15]) {
-                    str_main.setText("盤面で表になっている間、毎");
-                    str_main2.setText("ターン300のダメージを与える");
-                    longLongSleep();
-                  }
-                }
-                str_main2.setText(null);
-                str_main.setText(null);
-              }
-
-              int Poison;
-              int PoisonDamege;
-              if (myTurn) {
-                Poison = counter.getMyBoarCount();
-                PoisonDamege = Poison * 300;
-              } else {
-                Poison = counter.getYourBoarCount();
-                PoisonDamege = Poison * 300;
-              }
-              poisonDamegeLabel.setText("イノシシの個数" + Poison + "×" + 300 + "=" + PoisonDamege);
-              damege += PoisonDamege; // 72 毒
-
-              int lifeBurst;
-
-              if (selected == 73) {
-                if (myTurn) {
-                  if (myColor == 1) {
-                    lifeBurst = (maxHP - player0_hp) / 100;
-                  } else {
-                    lifeBurst = (maxHP - player1_hp) / 100;
-                  }
-                } else {
-                  if (myColor == 1) {
-                    lifeBurst = (maxHP - enemy0_hp) / 100;
-                  } else {
-                    lifeBurst = (maxHP - enemy1_hp) / 100;
-                  }
-                }
-                itDamege = lifeBurst * 60;
-                skillDamegeLabel.setText("減少分割合　" + lifeBurst + "%×" + 60 + "=" + itDamege);
-                damege += itDamege;
-
-                for (ImageIcon i : horseDoorIcon) {
-                  DoorLabel.setIcon(i);
-                  longSleep();
-
-                  if (i == horseDoorIcon[15]) {
-                    str_main.setText("自分のHPが減少する程");
-                    str_main2.setText("与えるダメージが上昇する");
-                    longLongSleep();
-                  }
-                }
-                str_main2.setText(null);
-                str_main.setText(null);
-              }
-
-              if (selected == 74) {
-                int pieceSum;
-                if (myTurn) {
-                  pieceSum =
-                      counter.getYourIconCount()
-                          + counter.getYourCatCount()
-                          + counter.getYourBoarCount()
-                          + counter.getYourHorseCount()
-                          + counter.getYourBirdCount();
-                } else {
-                  pieceSum =
-                      counter.getMyIconCount()
-                          + counter.getMyCatCount()
-                          + counter.getMyBoarCount()
-                          + counter.getMyHorseCount()
-                          + counter.getMyBirdCount();
-                }
-                itDamege = pieceSum * 80;
-                skillDamegeLabel.setText("相手の駒の総数" + pieceSum + "×" + 80 + "=" + itDamege);
-                damege += itDamege;
-
-                for (ImageIcon i : birdDoorIcon) {
-                  DoorLabel.setIcon(i);
-                  longSleep();
-
-                  if (i == birdDoorIcon[15]) {
-                    str_main.setText("ひっくり返した後の、");
-                    str_main2.setText("相手の駒数×80のダメージを与える");
-                    longLongSleep();
-                  }
-                }
-                str_main2.setText(null);
-                str_main.setText(null);
-              }
-
-              attackSumLabel.setText("合計ダメージ＝" + damege);
-
-              if (myTurn) {
-                if (myColor == 0) {
-                  enemy1_hp -= damege;
-                  String strEnemy1_hp = String.valueOf(enemy1_hp);
-                  enemy_HP.setText(strEnemy1_hp);
-
-                  enemy_HPGAUGE.setBounds(0, 55, (int) (maxHpGaugeWidth * enemy1_hp), 10);
-                } else {
-                  enemy0_hp -= damege;
-                  String strEnemy0_hp = String.valueOf(enemy0_hp);
-                  enemy_HP.setText(strEnemy0_hp);
-
-                  enemy_HPGAUGE.setBounds(0, 55, (int) (maxHpGaugeWidth * enemy0_hp), 10);
-                }
-                myTurn = false;
-                for (int i = 0; i < MASU; i++) {
-                  for (int j = 0; j < MASU; j++) {
-                    if (buttonArray[i][j].getIcon() == canPutIcon) {
-                      buttonArray[i][j].setIcon(boardIcon);
-                    }
-                  }
-                }
-              } else {
-                if (myColor == 0) {
-                  player1_hp -= damege;
-                  String strPlayer1_hp = String.valueOf(player1_hp);
-                  playerHpLabel.setText(strPlayer1_hp);
-
-                  player_HPGAUGE.setBounds(0, 5, (int) (maxHpGaugeWidth * player1_hp), 10);
-                } else {
-                  player0_hp -= damege;
-                  String strPlayer0_hp = String.valueOf(player0_hp);
-                  playerHpLabel.setText(strPlayer0_hp);
-                  player_HPGAUGE.setBounds(0, 5, (int) (maxHpGaugeWidth * player0_hp), 10);
-                }
-
-                if (hpCheaker()) {
-                  String msg = "RESULT";
-                  endGame = true;
-                  out.writeUTF(msg);
-                  out.flush();
-                }
-
-                if (!endGame) {
-                  myTurn = true;
-                  countPutDownStone();
-
-                  for (ImageIcon i : yourturnIcon) {
-                    str_main.setIcon(i);
-                    longSleep();
-                  }
-
-                  str_main.setIcon(null);
-                }
-              }
-              System.out.println(endGame);
             }
+            System.out.println(endGame);
+          }
 
-            if (cmd.equals("RESULT")) {
-              break;
-            }
-          } else {
+          if (command.equals("RESULT")) {
             break;
           }
         }
         if (myIcon == blackIcon) {
           if (player1_hp < 0) {
             for (ImageIcon i : youloseIcon) {
-              str_main.setIcon(i);
+              strMain.setIcon(i);
               longSleep();
             }
           } else {
             for (ImageIcon i : youwinIcon) {
-              str_main.setIcon(i);
+              strMain.setIcon(i);
               longSleep();
             }
           }
         } else {
           if (player0_hp < 0) {
             for (ImageIcon i : youloseIcon) {
-              str_main.setIcon(i);
+              strMain.setIcon(i);
               longSleep();
             }
           } else {
             for (ImageIcon i : youwinIcon) {
-              str_main.setIcon(i);
+              strMain.setIcon(i);
               longSleep();
             }
           }
           socket.close();
         }
-      } catch (IOException e) {
+      } catch (IOException | ClassNotFoundException e) {
         System.err.println("エラーが発生しました: " + e);
       }
     }
@@ -879,14 +875,9 @@ public class Client extends JFrame implements MouseListener {
 
   // ----------------------------------------------------------------------------------------------
 
-  private void whichCome(int num) {
-    if (num % 2 != 0) {
-      myColor = 0;
-      myTurn = true;
-    } else {
-      myColor = 1;
-      myTurn = false;
-    }
+  @Contract(pure = true)
+  private boolean colorToFirstTurn(BlackOrWhite blackOrWhite) {
+    return blackOrWhite == BlackOrWhite.Black;
   }
 
   private void longSleep() {
@@ -897,8 +888,8 @@ public class Client extends JFrame implements MouseListener {
     }
   }
 
-  private void whichColor(int num) {
-    if (num == 0) {
+  private void setIconFromBlackOrWhite(@NotNull BlackOrWhite blackOrWhite) {
+    if (blackOrWhite == BlackOrWhite.Black) {
       myIcon = blackIcon;
       myNoSelectedIcon = black_noSelectedIcon;
       mySelectedIcon = black_selectedIcon;
@@ -921,14 +912,15 @@ public class Client extends JFrame implements MouseListener {
       yourPutHorseIcon = horse_white_putIcon;
       yourPutBirdIcon = bird_white_putIcon;
 
-      for (ImageIcon i : yourturnIcon) {
-        str_main.setIcon(i);
+      for (ImageIcon imageIcon : yourturnIcon) {
+        strMain.setIcon(imageIcon);
         longSleep();
       }
 
-      str_main.setIcon(null);
+      strMain.setIcon(null);
 
-    } else if (num == 1) {
+      return;
+    } else {
       myIcon = whiteIcon;
       myNoSelectedIcon = white_noSelectedIcon;
       mySelectedIcon = white_selectedIcon;
@@ -950,8 +942,6 @@ public class Client extends JFrame implements MouseListener {
       yourPutBoarIcon = boar_black_putIcon;
       yourPutHorseIcon = horse_black_putIcon;
       yourPutBirdIcon = bird_black_putIcon;
-
-      countPutDownStone();
     }
   }
 
@@ -1046,14 +1036,30 @@ public class Client extends JFrame implements MouseListener {
 
   private void reverse(int x, int y) {
     // ひっくり返せる石がある方向はすべてひっくり返す
-    if (canPutDown(x, y, 1, 0)) reverse(x, y, 1, 0);
-    if (canPutDown(x, y, 0, 1)) reverse(x, y, 0, 1);
-    if (canPutDown(x, y, -1, 0)) reverse(x, y, -1, 0);
-    if (canPutDown(x, y, 0, -1)) reverse(x, y, 0, -1);
-    if (canPutDown(x, y, 1, 1)) reverse(x, y, 1, 1);
-    if (canPutDown(x, y, -1, -1)) reverse(x, y, -1, -1);
-    if (canPutDown(x, y, 1, -1)) reverse(x, y, 1, -1);
-    if (canPutDown(x, y, -1, 1)) reverse(x, y, -1, 1);
+    if (canPutDown(x, y, 1, 0)) {
+      reverse(x, y, 1, 0);
+    }
+    if (canPutDown(x, y, 0, 1)) {
+      reverse(x, y, 0, 1);
+    }
+    if (canPutDown(x, y, -1, 0)) {
+      reverse(x, y, -1, 0);
+    }
+    if (canPutDown(x, y, 0, -1)) {
+      reverse(x, y, 0, -1);
+    }
+    if (canPutDown(x, y, 1, 1)) {
+      reverse(x, y, 1, 1);
+    }
+    if (canPutDown(x, y, -1, -1)) {
+      reverse(x, y, -1, -1);
+    }
+    if (canPutDown(x, y, 1, -1)) {
+      reverse(x, y, 1, -1);
+    }
+    if (canPutDown(x, y, -1, 1)) {
+      reverse(x, y, -1, 1);
+    }
   }
 
   private void reverse(int x, int y, int vecX, int vecY) {
@@ -1068,13 +1074,7 @@ public class Client extends JFrame implements MouseListener {
         && buttonArray[y][x].getIcon() != myPutBoarIcon) {
       // ひっくり返す
       msg = "REVERSE" + " " + myColor + " " + x + " " + y;
-      try {
-        out.writeUTF(msg);
-        out.flush();
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-
+      sendDataToServer(msg);
       x += vecX;
       y += vecY;
     }
@@ -1147,12 +1147,7 @@ public class Client extends JFrame implements MouseListener {
         canPutX = x - (vecX * (count + 1));
         canPutY = y - (vecY * (count + 1));
         String msg = "CANPUT" + " " + canPutX + " " + canPutY;
-        try {
-          out.writeUTF(msg);
-          out.flush();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
+        sendDataToServer(msg);
         return true;
       }
       x += vecX;
@@ -1174,104 +1169,82 @@ public class Client extends JFrame implements MouseListener {
     }
     if (count == 0) {
       msg = "PASS";
-      try {
-        out.writeUTF(msg); // 送信データをバッファに書き出す
-        out.flush();
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+      sendDataToServer(msg); // 送信データをバッファに書き出す
       return true;
     }
     return false;
   }
 
-  public boolean hpCheaker() {
+  public boolean hpChecker() {
     return player0_hp < 0 || player1_hp < 0;
   }
 
-  public void mouseClicked(MouseEvent mouseEvent) { // ボタンをクリックしたときの処理
+  @Override
+  public void mouseClicked(@NotNull MouseEvent mouseEvent) { // ボタンをクリックしたときの処理
     System.out.println("クリック");
-    JButton theButton = (JButton) mouseEvent.getComponent(); // クリックしたオブジェクトを得る．型が違うのでキャストする
-    String theArrayIndex = theButton.getActionCommand(); // ボタンの配列の番号を取り出す
-    int theArrayIndexInt = Integer.parseInt(theArrayIndex);
-    int y = theArrayIndexInt / MASU;
-    int x = theArrayIndexInt % MASU;
+    final JButton theButton = (JButton) mouseEvent.getComponent(); // クリックしたオブジェクトを得る．型が違うのでキャストする
+    final int theArrayIndexInt = Integer.parseInt(theButton.getActionCommand()); // ボタンの配列の番号を取り出す
+    final int y = theArrayIndexInt / MASU;
+    final int x = theArrayIndexInt % MASU;
 
-    Icon theIcon = theButton.getIcon(); // theIconには，現在のボタンに設定されたアイコンが入る
-    System.out.println(theIcon); // デバッグ（確認用）に，クリックしたアイコンの名前を出力する
+    System.out.println("theArrayIndexInt=" + theArrayIndexInt);
+    final Icon theIcon = theButton.getIcon();
+    System.out.println(theIcon);
 
-    try {
-      if (myTurn) {
-        if (!endGame) {
-          if (theArrayIndexInt == 70
-              || theArrayIndexInt == 71
-              || theArrayIndexInt == 72
-              || theArrayIndexInt == 73
-              || theArrayIndexInt == 74) {
-            if (theArrayIndexInt == 70) {
-              othello_piece_Normal.setIcon(mySelectedIcon);
-              othello_piece_A.setIcon(myNoSelectdCatIcon);
-              othello_piece_B.setIcon(myNoSelectedBoarIcon);
-              othello_piece_C.setIcon(myNoSelectedHorseIcon);
-              othello_piece_D.setIcon(myNoSelectedBirdIcon);
-              msg = "SELECT" + " " + myColor + " " + theArrayIndexInt;
-            } else if (theArrayIndexInt == 71) {
-              othello_piece_Normal.setIcon(myNoSelectedIcon);
-              othello_piece_A.setIcon(mySelectedCatIcon);
-              othello_piece_B.setIcon(myNoSelectedBoarIcon);
-              othello_piece_C.setIcon(myNoSelectedHorseIcon);
-              othello_piece_D.setIcon(myNoSelectedBirdIcon);
-              msg = "SELECT" + " " + myColor + " " + theArrayIndexInt;
-            } else if (theArrayIndexInt == 72) {
-              othello_piece_Normal.setIcon(myNoSelectedIcon);
-              othello_piece_A.setIcon(myNoSelectdCatIcon);
-              othello_piece_B.setIcon(mySelectedBoarIcon);
-              othello_piece_C.setIcon(myNoSelectedHorseIcon);
-              othello_piece_D.setIcon(myNoSelectedBirdIcon);
-              msg = "SELECT" + " " + myColor + " " + theArrayIndexInt;
-            } else if (theArrayIndexInt == 73) {
-              othello_piece_Normal.setIcon(myNoSelectedIcon);
-              othello_piece_A.setIcon(myNoSelectdCatIcon);
-              othello_piece_B.setIcon(myNoSelectedBoarIcon);
-              othello_piece_C.setIcon(mySelectedHorseIcon);
-              othello_piece_D.setIcon(myNoSelectedBirdIcon);
-              msg = "SELECT" + " " + myColor + " " + theArrayIndexInt;
-            } else if (theArrayIndexInt == 74) {
-              othello_piece_Normal.setIcon(myNoSelectedIcon);
-              othello_piece_A.setIcon(myNoSelectdCatIcon);
-              othello_piece_B.setIcon(myNoSelectedBoarIcon);
-              othello_piece_C.setIcon(myNoSelectedHorseIcon);
-              othello_piece_D.setIcon(mySelectedBirdIcon);
-              msg = "SELECT" + " " + myColor + " " + theArrayIndexInt;
-            }
-            out.writeUTF(msg);
-            out.flush();
-          } else {
-            if (myTurn) {
-              if (canPutDown(x, y)) {
-                msg = "FLIP" + " " + x + " " + y;
-                out.writeUTF(msg);
-                out.flush();
-                reverse(x, y);
-                msg = "REVERSED";
-                out.writeUTF(msg); // 送信データをバッファに書き出す
-                out.flush();
-              } else {
-                System.out.println("そこには配置できません");
-              }
-            } else {
-              System.out.println("今あなた違う");
-            }
-          }
-        }
+    if (myTurn && !endGame) {
+      if (theArrayIndexInt == 70) {
+        othello_piece_Normal.setIcon(mySelectedIcon);
+        othello_piece_A.setIcon(myNoSelectdCatIcon);
+        othello_piece_B.setIcon(myNoSelectedBoarIcon);
+        othello_piece_C.setIcon(myNoSelectedHorseIcon);
+        othello_piece_D.setIcon(myNoSelectedBirdIcon);
+        sendDataToServer("SELECT" + " " + myColor + " " + theArrayIndexInt);
       }
-
-    } catch (IOException e) {
-      e.printStackTrace();
+      if (theArrayIndexInt == 71) {
+        othello_piece_Normal.setIcon(myNoSelectedIcon);
+        othello_piece_A.setIcon(mySelectedCatIcon);
+        othello_piece_B.setIcon(myNoSelectedBoarIcon);
+        othello_piece_C.setIcon(myNoSelectedHorseIcon);
+        othello_piece_D.setIcon(myNoSelectedBirdIcon);
+        sendDataToServer("SELECT" + " " + myColor + " " + theArrayIndexInt);
+      }
+      if (theArrayIndexInt == 72) {
+        othello_piece_Normal.setIcon(myNoSelectedIcon);
+        othello_piece_A.setIcon(myNoSelectdCatIcon);
+        othello_piece_B.setIcon(mySelectedBoarIcon);
+        othello_piece_C.setIcon(myNoSelectedHorseIcon);
+        othello_piece_D.setIcon(myNoSelectedBirdIcon);
+        sendDataToServer("SELECT" + " " + myColor + " " + theArrayIndexInt);
+      }
+      if (theArrayIndexInt == 73) {
+        othello_piece_Normal.setIcon(myNoSelectedIcon);
+        othello_piece_A.setIcon(myNoSelectdCatIcon);
+        othello_piece_B.setIcon(myNoSelectedBoarIcon);
+        othello_piece_C.setIcon(mySelectedHorseIcon);
+        othello_piece_D.setIcon(myNoSelectedBirdIcon);
+        sendDataToServer("SELECT" + " " + myColor + " " + theArrayIndexInt);
+      }
+      if (theArrayIndexInt == 74) {
+        othello_piece_Normal.setIcon(myNoSelectedIcon);
+        othello_piece_A.setIcon(myNoSelectdCatIcon);
+        othello_piece_B.setIcon(myNoSelectedBoarIcon);
+        othello_piece_C.setIcon(myNoSelectedHorseIcon);
+        othello_piece_D.setIcon(mySelectedBirdIcon);
+        sendDataToServer("SELECT" + " " + myColor + " " + theArrayIndexInt);
+      }
+      if (canPutDown(x, y)) {
+        System.out.println("canPutDownでTrueになった" + x + y);
+        sendDataToServer("FLIP" + " " + x + " " + y);
+        reverse(x, y);
+        sendDataToServer("REVERSED"); // 送信データをバッファに書き出す
+      } else {
+        System.out.println("そこには配置できません");
+      }
     }
   }
 
-  public void mouseEntered(MouseEvent e) { // マウスがオブジェクトに入ったときの処理
+  @Override
+  public void mouseEntered(@NotNull MouseEvent e) { // マウスがオブジェクトに入ったときの処理
     JButton theButton = (JButton) e.getComponent(); // クリックしたオブジェクトを得る．型が違うのでキャストする
     String theArrayIndex = theButton.getActionCommand(); // ボタンの配列の番号を取り出す
     int theArrayIndexInt = Integer.parseInt(theArrayIndex);
@@ -1298,13 +1271,16 @@ public class Client extends JFrame implements MouseListener {
     }
   }
 
+  @Override
   public void mouseExited(MouseEvent e) {
 
     pieceDescription.setText(null);
     pieceDescription.setOpaque(false);
   }
 
+  @Override
   public void mousePressed(MouseEvent e) {}
 
+  @Override
   public void mouseReleased(MouseEvent e) {}
 }

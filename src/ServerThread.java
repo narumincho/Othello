@@ -1,43 +1,47 @@
-import java.io.ObjectInputStream;
-import java.io.PrintWriter;
+import Data.BlackOrWhite;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.*;
+import java.net.Socket;
 
 /** 各クライアントからリクエストを受け取るスレッド */
 class ServerThread extends Thread {
-  /** 管理する接続番号 */
-  private ObjectInputStream objectInputStream;
+  private Socket socket;
+  private ObjectOutputStream outputStream;
+  private BlackOrWhite blackOrWhite;
 
-  private PrintWriter printWriter;
-  /** 接続者の名前 */
-  private String name;
-
-  ServerThread(final ObjectInputStream objectInputStream, final PrintWriter printWriter) {
-    this.objectInputStream = objectInputStream;
-    this.printWriter = printWriter;
+  ServerThread(
+      @NotNull final Socket socket,
+      @NotNull final ObjectOutputStream outputStream,
+      @NotNull final BlackOrWhite blackOrWhite) {
+    this.socket = socket;
+    this.outputStream = outputStream;
+    this.blackOrWhite = blackOrWhite;
   }
 
   @Override
   public void run() {
     try {
-      printWriter.println(this.getId()); // 初回だけ呼ばれる
+      final ObjectInputStream inputStream = new ObjectInputStream(this.socket.getInputStream());
+      while (true) {
+        System.out.println(this.blackOrWhite + "クライアントからのリクエスト待ち");
+        final String messageFromClient = inputStream.readUTF();
 
-      this.name = objectInputStream.readUTF();
-
-      while (true) { // 無限ループで，ソケットへの入力を監視する
-        final String messageFromClient = objectInputStream.readUTF();
-        if (messageFromClient.toUpperCase().equals("BYE")) {
-          printWriter.println("Good bye!");
-          return;
-        }
-        Server.SendAll(messageFromClient, this.getId()); // サーバに来たメッセージは接続しているクライアント全員に配る
+        System.out.println(this.blackOrWhite + "クライアントから" + messageFromClient + "がきた");
+        Server.SendAll(messageFromClient, blackOrWhite); // サーバに来たメッセージは接続しているクライアント全員に配る
       }
-    } catch (Exception e) {
-      // ここにプログラムが到達するときは，接続が切れたとき
-      System.out.println("Disconnect from client No." + this.getId() + "(" + this.name + ")");
-      Server.disconnected(this.getId()); // 接続が切れたのでフラグを下げる
+    } catch (IOException e) {
+      // 接続が切れたことを呼び出し元に伝える
+      Server.disconnect(this.blackOrWhite);
     }
   }
 
-  public void sendMessage(final String message) {
-    printWriter.println(message);
+  public void sendMessage(@NotNull final String message) {
+    try {
+      this.outputStream.writeUTF(message);
+      this.outputStream.flush();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 }
