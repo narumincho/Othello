@@ -115,6 +115,11 @@ public class Client extends JFrame implements MouseListener {
   private Socket socket;
   private ObjectOutputStream objectOutputStream;
 
+  private int catCount = 3;
+  private int boarCount = 3;
+  private int hourseCount = 3;
+  private int birdCount = 3;
+
   public static void main(String[] args) {
     Client client = new Client();
     client.setVisible(true);
@@ -1177,36 +1182,76 @@ public class Client extends JFrame implements MouseListener {
         sendDataToServer("SELECT" + " " + myColor + " " + theArrayIndexInt);
       }
       if (theArrayIndexInt == 71) {
-        othello_piece_Normal.setIcon(myNoSelectedIcon);
-        othello_piece_A.setIcon(mySelectedCatIcon);
-        othello_piece_B.setIcon(myNoSelectedBoarIcon);
-        othello_piece_C.setIcon(myNoSelectedHorseIcon);
-        othello_piece_D.setIcon(myNoSelectedBirdIcon);
-        sendDataToServer("SELECT" + " " + myColor + " " + theArrayIndexInt);
+        catCount -= 1;
+        if (catCount < 0) {
+          othello_piece_Normal.setIcon(myNoSelectedIcon);
+          othello_piece_A.setIcon(myNoSelectedIcon);
+          othello_piece_A.setText("使用不可");
+          othello_piece_B.setIcon(myNoSelectedBoarIcon);
+          othello_piece_C.setIcon(myNoSelectedHorseIcon);
+          othello_piece_D.setIcon(myNoSelectedBirdIcon);
+        } else {
+          othello_piece_Normal.setIcon(myNoSelectedIcon);
+          othello_piece_A.setIcon(mySelectedCatIcon);
+          othello_piece_B.setIcon(myNoSelectedBoarIcon);
+          othello_piece_C.setIcon(myNoSelectedHorseIcon);
+          othello_piece_D.setIcon(myNoSelectedBirdIcon);
+          sendDataToServer("SELECT" + " " + myColor + " " + theArrayIndexInt);
+        }
       }
       if (theArrayIndexInt == 72) {
-        othello_piece_Normal.setIcon(myNoSelectedIcon);
-        othello_piece_A.setIcon(myNoSelectdCatIcon);
-        othello_piece_B.setIcon(mySelectedBoarIcon);
-        othello_piece_C.setIcon(myNoSelectedHorseIcon);
-        othello_piece_D.setIcon(myNoSelectedBirdIcon);
-        sendDataToServer("SELECT" + " " + myColor + " " + theArrayIndexInt);
+        boarCount -= 1;
+        if (boarCount < 0) {
+          othello_piece_Normal.setIcon(myNoSelectedIcon);
+          othello_piece_A.setIcon(myNoSelectdCatIcon);
+          othello_piece_B.setIcon(mySelectedBoarIcon);
+          othello_piece_B.setText("使用不可");
+          othello_piece_C.setIcon(myNoSelectedHorseIcon);
+          othello_piece_D.setIcon(myNoSelectedBirdIcon);
+        } else {
+          othello_piece_Normal.setIcon(myNoSelectedIcon);
+          othello_piece_A.setIcon(myNoSelectdCatIcon);
+          othello_piece_B.setIcon(mySelectedBoarIcon);
+          othello_piece_C.setIcon(myNoSelectedHorseIcon);
+          othello_piece_D.setIcon(myNoSelectedBirdIcon);
+          sendDataToServer("SELECT" + " " + myColor + " " + theArrayIndexInt);
+        }
       }
       if (theArrayIndexInt == 73) {
-        othello_piece_Normal.setIcon(myNoSelectedIcon);
-        othello_piece_A.setIcon(myNoSelectdCatIcon);
-        othello_piece_B.setIcon(myNoSelectedBoarIcon);
-        othello_piece_C.setIcon(mySelectedHorseIcon);
-        othello_piece_D.setIcon(myNoSelectedBirdIcon);
-        sendDataToServer("SELECT" + " " + myColor + " " + theArrayIndexInt);
+        hourseCount -= 1;
+        if (hourseCount < 0) {
+          othello_piece_Normal.setIcon(myNoSelectedIcon);
+          othello_piece_A.setIcon(myNoSelectdCatIcon);
+          othello_piece_B.setIcon(myNoSelectedBoarIcon);
+          othello_piece_C.setIcon(mySelectedHorseIcon);
+          othello_piece_C.setText("使用不可");
+          othello_piece_D.setIcon(myNoSelectedBirdIcon);
+        } else {
+          othello_piece_Normal.setIcon(myNoSelectedIcon);
+          othello_piece_A.setIcon(myNoSelectdCatIcon);
+          othello_piece_B.setIcon(myNoSelectedBoarIcon);
+          othello_piece_C.setIcon(mySelectedHorseIcon);
+          othello_piece_D.setIcon(myNoSelectedBirdIcon);
+          sendDataToServer("SELECT" + " " + myColor + " " + theArrayIndexInt);
+        }
       }
       if (theArrayIndexInt == 74) {
-        othello_piece_Normal.setIcon(myNoSelectedIcon);
-        othello_piece_A.setIcon(myNoSelectdCatIcon);
-        othello_piece_B.setIcon(myNoSelectedBoarIcon);
-        othello_piece_C.setIcon(myNoSelectedHorseIcon);
-        othello_piece_D.setIcon(mySelectedBirdIcon);
-        sendDataToServer("SELECT" + " " + myColor + " " + theArrayIndexInt);
+        birdCount -= 1;
+        if (birdCount < 0) {
+          othello_piece_Normal.setIcon(myNoSelectedIcon);
+          othello_piece_A.setIcon(myNoSelectdCatIcon);
+          othello_piece_B.setIcon(myNoSelectedBoarIcon);
+          othello_piece_C.setIcon(mySelectedHorseIcon);
+          othello_piece_D.setIcon(myNoSelectedBirdIcon);
+          othello_piece_D.setText("使用不可");
+        } else {
+          othello_piece_Normal.setIcon(myNoSelectedIcon);
+          othello_piece_A.setIcon(myNoSelectdCatIcon);
+          othello_piece_B.setIcon(myNoSelectedBoarIcon);
+          othello_piece_C.setIcon(myNoSelectedHorseIcon);
+          othello_piece_D.setIcon(mySelectedBirdIcon);
+          sendDataToServer("SELECT" + " " + myColor + " " + theArrayIndexInt);
+        }
       }
       if (canPutDown(x, y)) {
         System.out.println("canPutDownでTrueになった" + x + y);
